@@ -54,6 +54,13 @@ horizontal scroll at 320px, and every tap target at least 44×44 px on a touch s
 
 Apache-2.0. See `LICENSE` and `NOTICE`.
 
+## Limbi
+
+Pagina exista in patru limbi: engleza, romana, sarba latina si sarba chirilica (`en`, `ro`, `sr`, `sr-Cyrl`).
+Prima vizita e in engleza, indiferent de limba browserului; alegerea se face din comutatorul din antet si se
+pastreaza in `localStorage` (`video-trim-lang`). Se schimba o data cu limba: `<html lang>`, titlul, descrierea,
+`og:description` si `inLanguage` din JSON-LD. Textele stau intr-un singur obiect `I18N`, in fisierul HTML.
+
 ## Poze
 
 - `docs/preview-desktop.png` — pagina cu un clip încărcat, selecție 0:00.8 - 0:03.2

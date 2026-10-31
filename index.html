@@ -101,6 +101,10 @@
         display: inline-flex; align-items: center; gap: 8px; min-height: 44px;
     }
     .ghost:hover { background: var(--card-2); }
+    /* regula generala da `select { width: 100% }` (bun in interiorul unui card);
+       comutatorul de limba sta in antet, deci isi ia doar latimea numelui limbii */
+    select.ghost { padding: 10px 12px; font-weight: 600; cursor: pointer;
+                   width: auto; max-width: 11rem; flex: 0 0 auto; }
 
     /* ===== Intro ===== */
     h1 { font-size: clamp(1.5rem, 4.4vw, 2.15rem); line-height: 1.2; margin: 14px 0 6px; letter-spacing: -.02em; }
@@ -298,6 +302,12 @@ html, body { overflow-x: hidden; }
       <span>Video Trimmer</span>
     </a>
     <span class="spacer"></span>
+    <select class="ghost" id="langSel" aria-label="Language">
+      <option value="en" lang="en">English</option>
+      <option value="ro" lang="ro">Română</option>
+      <option value="sr" lang="sr">Srpski</option>
+      <option value="src" lang="sr-Cyrl">Српски</option>
+    </select>
     <button class="ghost" id="themeBtn" type="button" aria-pressed="false">
       <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"/></svg>
       <span id="themeLabel">Light</span>
@@ -305,24 +315,24 @@ html, body { overflow-x: hidden; }
   </header>
 
   <main>
-    <h1>Cut a video, in your browser</h1>
-    <p class="lede">Pick the start and the end, optionally drop the sound, and save a smaller file. The clip is
+    <h1 data-i18n="h1">Cut a video, in your browser</h1>
+    <p class="lede" data-i18n="lede">Pick the start and the end, optionally drop the sound, and save a smaller file. The clip is
       processed on your own device &mdash; it never goes to a server, there is no account and no upload.</p>
 
     <ul class="pill-row">
-      <li class="pill"><b>No upload</b></li>
-      <li class="pill"><b>No account</b></li>
-      <li class="pill">Works offline</li>
+      <li class="pill"><b data-i18n="pill.local">No upload</b></li>
+      <li class="pill"><b data-i18n="pill.account">No account</b></li>
+      <li class="pill" data-i18n="pill.offline">Works offline</li>
       <li class="pill">Apache-2.0</li>
     </ul>
 
     <section class="card" aria-labelledby="pickTitle">
-      <h2 id="pickTitle">1. Choose a video</h2>
+      <h2 id="pickTitle" data-i18n="step1">1. Choose a video</h2>
       <div class="drop-wrap">
         <label class="drop" id="drop" for="file">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4"/><path d="m7 9 5-5 5 5"/><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
-          <p>Drop a video here, or press to choose one</p>
-          <small>MP4, WebM, MOV, or anything your browser can play. It stays on your device.</small>
+          <p data-i18n="drop.title">Drop a video here, or press to choose one</p>
+          <small data-i18n="drop.hint">MP4, WebM, MOV, or anything your browser can play. It stays on your device.</small>
         </label>
         <input id="file" type="file" accept="video/*">
       </div>
@@ -330,7 +340,7 @@ html, body { overflow-x: hidden; }
     </section>
 
     <section class="card" id="editCard" aria-labelledby="editTitle" hidden>
-      <h2 id="editTitle">2. Set the part you keep</h2>
+      <h2 id="editTitle" data-i18n="step2">2. Set the part you keep</h2>
       <div class="stage">
         <video id="preview" playsinline controls preload="metadata"></video>
         <div class="meta" id="meta"></div>
@@ -343,14 +353,14 @@ html, body { overflow-x: hidden; }
 
         <div class="row two">
           <div class="field">
-            <label for="start">Start</label>
+            <label for="start" data-i18n="label.start">Start</label>
             <div class="sliderline">
               <input id="start" type="range" min="0" max="100" step="0.01" value="0">
               <output class="time" id="startOut" for="start">0:00.0</output>
             </div>
           </div>
           <div class="field">
-            <label for="end">End</label>
+            <label for="end" data-i18n="label.end">End</label>
             <div class="sliderline">
               <input id="end" type="range" min="0" max="100" step="0.01" value="100">
               <output class="time" id="endOut" for="end">0:00.0</output>
@@ -361,32 +371,32 @@ html, body { overflow-x: hidden; }
         <div class="playbar">
           <button class="btn small" id="playBtn" type="button">
             <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
-            Play
+            <span data-i18n="btn.play">Play</span>
           </button>
-          <button class="btn small" id="setStart" type="button">Start here</button>
-          <button class="btn small" id="setEnd" type="button">End here</button>
-          <button class="btn small" id="resetRange" type="button">Whole video</button>
+          <button class="btn small" id="setStart" type="button" data-i18n="btn.startHere">Start here</button>
+          <button class="btn small" id="setEnd" type="button" data-i18n="btn.endHere">End here</button>
+          <button class="btn small" id="resetRange" type="button" data-i18n="btn.whole">Whole video</button>
           <button class="btn small" id="snapBtn" type="button">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3.2"/><path d="M8 6l1.5-2h5L16 6"/></svg>
-            Save this frame
+            <span data-i18n="btn.frame">Save this frame</span>
           </button>
         </div>
       </div>
     </section>
 
     <section class="card" id="outCard" aria-labelledby="outTitle" hidden>
-      <h2 id="outTitle">3. Save it</h2>
+      <h2 id="outTitle" data-i18n="step3">3. Save it</h2>
       <div class="opts">
         <label class="check" for="mute">
           <input id="mute" type="checkbox">
-          <span>Remove the sound</span>
+          <span data-i18n="opt.mute">Remove the sound</span>
         </label>
         <div class="field">
-          <label for="quality">Size and quality</label>
+          <label for="quality" data-i18n="opt.quality">Size and quality</label>
           <select id="quality">
-            <option value="high">High &mdash; larger file</option>
-            <option value="balanced" selected>Balanced</option>
-            <option value="small">Small &mdash; for sharing</option>
+            <option value="high" data-i18n="q.high">High &mdash; larger file</option>
+            <option value="balanced" selected data-i18n="q.balanced">Balanced</option>
+            <option value="small" data-i18n="q.small">Small &mdash; for sharing</option>
           </select>
         </div>
       </div>
@@ -396,7 +406,7 @@ html, body { overflow-x: hidden; }
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M4 19h16"/></svg>
           <span id="exportLabel">Cut and save</span>
         </button>
-        <button class="btn" id="cancelBtn" type="button" hidden>Cancel</button>
+        <button class="btn" id="cancelBtn" type="button" hidden data-i18n="btn.cancel">Cancel</button>
       </div>
 
       <div class="progress" id="progress">
@@ -413,9 +423,9 @@ html, body { overflow-x: hidden; }
         <div class="actions">
           <a class="btn primary" id="download" download href="#">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M4 19h16"/></svg>
-            Download
+            <span data-i18n="btn.download">Download</span>
           </a>
-          <button class="btn" id="againBtn" type="button">Trim again</button>
+          <button class="btn" id="againBtn" type="button" data-i18n="btn.again">Trim again</button>
         </div>
       </div>
 
@@ -423,31 +433,350 @@ html, body { overflow-x: hidden; }
     </section>
 
     <section class="card notes" aria-labelledby="howTitle">
-      <h2 id="howTitle">How it works, and what to expect</h2>
+      <h2 id="howTitle" data-i18n="notes.title">How it works, and what to expect</h2>
       <ul>
-        <li><b>Your file never leaves the device.</b> There is no server: the video is decoded and re-encoded by
+        <li data-i18n-html="notes.1"><b>Your file never leaves the device.</b> There is no server: the video is decoded and re-encoded by
           this page inside your browser. You can unplug the network after the page has loaded.</li>
-        <li><b>The cut plays once while it is saved.</b> A browser cannot copy a piece of a compressed video
+        <li data-i18n-html="notes.2"><b>The cut plays once while it is saved.</b> A browser cannot copy a piece of a compressed video
           without re-encoding it, so the tool plays the part you kept and records it again. A 30-second clip
           takes about 30 seconds. You will not hear it while it records.</li>
-        <li><b>What comes out:</b> <span id="fmtNote">WebM (VP9 video, Opus audio)</span>, the same picture size
+        <li data-i18n-html="notes.3"><b>What comes out:</b> <span id="fmtNote">WebM (VP9 video, Opus audio)</span>, the same picture size
           as the original, without the frames outside your range.</li>
-        <li><b>What it does not do:</b> joining several clips, adding titles, or changing the resolution.
+        <li data-i18n-html="notes.4"><b>What it does not do:</b> joining several clips, adding titles, or changing the resolution.
           For that you need a real editor.</li>
-        <li><b>Save this frame</b> writes a PNG of the current picture, with no re-encoding at all &mdash; useful
+        <li data-i18n-html="notes.5"><b>Save this frame</b> writes a PNG of the current picture, with no re-encoding at all &mdash; useful
           for thumbnails.</li>
       </ul>
     </section>
 
     <footer class="foot">
-      <span>Part of <a href="https://freehtml.dev/">freehtml.dev</a> &mdash; free tools that run in your browser.</span>
-      <span>Apache-2.0. No tracking, no cookies.</span>
+      <span data-i18n-html="foot.part">Part of <a href="https://freehtml.dev/">freehtml.dev</a> &mdash; free tools that run in your browser.</span>
+      <span data-i18n="foot.license">Apache-2.0. No tracking, no cookies.</span>
+      <span><a href="https://PayPal.me/TekiDeki" target="_blank" rel="noopener noreferrer" data-i18n="foot.support">Support</a></span>
     </footer>
   </main>
 </div>
 
-<script type="application/ld+json">
+<script type="application/ld+json" id="ldjson">
 {"@context":"https://schema.org","@type":"WebApplication","name":"Video Trimmer","url":"https://tekideki.github.io/Video-Trim/","applicationCategory":"MultimediaApplication","operatingSystem":"Any (web browser)","browserRequirements":"Requires JavaScript and MediaRecorder support","description":"Cut and trim a video in the browser without uploading it: choose the start and end point, optionally remove the audio, export a smaller file. All processing happens on the device.","inLanguage":["en"],"isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"},"license":"https://www.apache.org/licenses/LICENSE-2.0"}
+</script>
+
+<script id="i18n">
+/* Textele uneltei, in patru limbi. Cheile sunt aceleasi in toate limbile;
+   daca o limba nu are o cheie, se foloseste engleza. Nimic nu se incarca din retea. */
+var I18N = {
+ "en": {
+  "btn.again": "Trim again",
+  "btn.cancel": "Cancel",
+  "btn.download": "Download",
+  "btn.endHere": "End here",
+  "btn.export": "Cut and save {n} s",
+  "btn.frame": "Save this frame",
+  "btn.pause": "Pause",
+  "btn.play": "Play",
+  "btn.startHere": "Start here",
+  "btn.whole": "Whole video",
+  "drop.hint": "MP4, WebM, MOV, or anything your browser can play. It stays on your device.",
+  "drop.title": "Drop a video here, or press to choose one",
+  "err.cannotRecord": "This browser cannot record video.",
+  "err.capture": "This browser cannot capture a video. Try Chrome, Edge or Firefox.",
+  "err.empty": "Nothing was recorded. Try again, or pick another format.",
+  "err.format": "This browser reports no usable recording format.",
+  "err.frame": "Could not read the frame.",
+  "err.notvideo": "That does not look like a video file. Pick an MP4, WebM or MOV.",
+  "err.recorder": "This browser cannot record video (MediaRecorder is missing). Try Chrome, Edge, Firefox or Safari 14.1 or newer.",
+  "err.refused": "The browser refused to start recording: {e}",
+  "err.start": "Could not start recording: {e}",
+  "err.tooShort": "The kept part is shorter than a tenth of a second. Move the end further.",
+  "fmt.mp4": "MP4",
+  "fmt.mp4a": "MP4 (H.264 video, AAC audio)",
+  "fmt.vp8": "WebM (VP8 video, Opus audio)",
+  "fmt.vp9": "WebM (VP9 video, Opus audio)",
+  "fmt.webm": "WebM",
+  "foot.license": "Apache-2.0. No tracking, no cookies.",
+  "foot.part": "Part of <a href=\"https://freehtml.dev/\">freehtml.dev</a> — free tools that run in your browser.",
+  "foot.support": "Support",
+  "h1": "Cut a video, in your browser",
+  "info.cancelled": "Cancelled. Nothing was saved.",
+  "info.frame": "Frame saved as a PNG at {t}.",
+  "info.saved": "Saved. Check the clip below, then download it.",
+  "info.silent": "This browser cannot capture the sound of a video, so the clip will be silent.",
+  "label.end": "End",
+  "label.start": "Start",
+  "lang.label": "Language",
+  "lede": "Pick the start and the end, optionally drop the sound, and save a smaller file. The clip is processed on your own device — it never goes to a server, there is no account and no upload.",
+  "meta.long": "long",
+  "meta.original": "original",
+  "meta.unknown": "format unknown",
+  "notes.1": "<b>Your file never leaves the device.</b> There is no server: the video is decoded and re-encoded by this page inside your browser. You can unplug the network after the page has loaded.",
+  "notes.2": "<b>The cut plays once while it is saved.</b> A browser cannot copy a piece of a compressed video without re-encoding it, so the tool plays the part you kept and records it again. A 30-second clip takes about 30 seconds. You will not hear it while it records.",
+  "notes.3": "<b>What comes out:</b> {fmt}, the same picture size as the original, without the frames outside your range.",
+  "notes.4": "<b>What it does not do:</b> joining several clips, adding titles, or changing the resolution. For that you need a real editor.",
+  "notes.5": "<b>Save this frame</b> writes a PNG of the current picture, with no re-encoding at all — useful for thumbnails.",
+  "notes.title": "How it works, and what to expect",
+  "opt.mute": "Remove the sound",
+  "opt.quality": "Size and quality",
+  "pill.account": "No account",
+  "pill.local": "No upload",
+  "pill.offline": "Works offline",
+  "prog.working": "Working…",
+  "q.balanced": "Balanced",
+  "q.high": "High — larger file",
+  "q.small": "Small — for sharing",
+  "state.done": "Done.",
+  "state.ready": "Getting the video ready…",
+  "state.rewind": "Rewinding to the start point…",
+  "state.saving": "Saving the kept part — it plays once…",
+  "step1": "1. Choose a video",
+  "step2": "2. Set the part you keep",
+  "step3": "3. Save it",
+  "theme.dark": "Dark",
+  "theme.light": "Light"
+ },
+ "ro": {
+  "btn.again": "Taie din nou",
+  "btn.cancel": "Renunță",
+  "btn.download": "Descarcă",
+  "btn.endHere": "Termină aici",
+  "btn.export": "Taie și salvează {n} s",
+  "btn.frame": "Salvează cadrul",
+  "btn.pause": "Pauză",
+  "btn.play": "Redă",
+  "btn.startHere": "Începe aici",
+  "btn.whole": "Tot videoclipul",
+  "drop.hint": "MP4, WebM, MOV sau orice poate reda browserul. Fișierul rămâne pe dispozitivul tău.",
+  "drop.title": "Trage un video aici sau apasă ca să alegi unul",
+  "err.cannotRecord": "Browserul nu poate înregistra video.",
+  "err.capture": "Browserul nu poate captura un video. Încearcă Chrome, Edge sau Firefox.",
+  "err.empty": "Nu s-a înregistrat nimic. Încearcă din nou sau alege alt format.",
+  "err.format": "Browserul nu raportează niciun format de înregistrare utilizabil.",
+  "err.frame": "Cadrul nu a putut fi citit.",
+  "err.notvideo": "Nu pare a fi un fișier video. Alege un MP4, WebM sau MOV.",
+  "err.recorder": "Browserul nu poate înregistra video (lipsește MediaRecorder). Încearcă Chrome, Edge, Firefox sau Safari 14.1 ori mai nou.",
+  "err.refused": "Browserul a refuzat pornirea înregistrării: {e}",
+  "err.start": "Înregistrarea nu a pornit: {e}",
+  "err.tooShort": "Partea păstrată e mai scurtă de o zecime de secundă. Mută sfârșitul mai înainte.",
+  "fmt.mp4": "MP4",
+  "fmt.mp4a": "MP4 (video H.264, audio AAC)",
+  "fmt.vp8": "WebM (video VP8, audio Opus)",
+  "fmt.vp9": "WebM (video VP9, audio Opus)",
+  "fmt.webm": "WebM",
+  "foot.license": "Apache-2.0. Fără urmărire, fără cookie-uri.",
+  "foot.part": "Parte din <a href=\"https://freehtml.dev/\">freehtml.dev</a> — unelte gratuite care rulează în browserul tău.",
+  "foot.support": "Susține",
+  "h1": "Taie un video, în browser",
+  "info.cancelled": "Anulat. Nu s-a salvat nimic.",
+  "info.frame": "Cadru salvat ca PNG la {t}.",
+  "info.saved": "Salvat. Verifică iseătura mai jos, apoi descarcă-o.",
+  "info.silent": "Browserul nu poate captura sunetul videoclipului, așa că iseătura va fi mută.",
+  "label.end": "Sfârșit",
+  "label.start": "Început",
+  "lang.label": "Limbă",
+  "lede": "Alegi începutul și sfârșitul, scoți sunetul dacă vrei și salvezi un fișier mai mic. Clipul e prelucrat pe dispozitivul tău — nu ajunge pe niciun server, nu e nevoie de cont și nu se încarcă nimic.",
+  "meta.long": "durată",
+  "meta.original": "original",
+  "meta.unknown": "format necunoscut",
+  "notes.1": "<b>Fișierul nu părăsește dispozitivul.</b> Nu există server: videoclipul e decodat și codat din nou de pagina asta, în browserul tău. Poți scoate rețeaua din priză după ce pagina s-a încărcat.",
+  "notes.2": "<b>Partea păstrată rulează o dată, cât se salvează.</b> Un browser nu poate copia o bucată dintr-un video comprimat fără să o codeze din nou, așa că unealta redă partea păstrată și o înregistrează. Un clip de 30 de secunde durează cam 30 de secunde. În timpul înregistrării nu se aude nimic.",
+  "notes.3": "<b>Ce iese:</b> {fmt}, aceeași mărime a imaginii ca originalul, fără cadrele din afara intervalului.",
+  "notes.4": "<b>Ce nu face:</b> lipirea mai multor clipuri, adăugarea de titluri sau schimbarea rezoluției. Pentru asta îți trebuie un editor adevărat.",
+  "notes.5": "<b>Salvează cadrul</b> scrie un PNG cu imaginea de acum, fără nicio recodare — util pentru copertă sau miniaturi.",
+  "notes.title": "Cum funcționează și la ce să te aștepți",
+  "opt.mute": "Scoate sunetul",
+  "opt.quality": "Mărime și calitate",
+  "pill.account": "Fără cont",
+  "pill.local": "Fără upload",
+  "pill.offline": "Merge offline",
+  "prog.working": "Se lucrează…",
+  "q.balanced": "Echilibrat",
+  "q.high": "Mare — fișier mai mare",
+  "q.small": "Mic — pentru trimis",
+  "state.done": "Gata.",
+  "state.ready": "Se pregătește videoclipul…",
+  "state.rewind": "Se revine la punctul de început…",
+  "state.saving": "Se salvează partea păstrată — rulează o dată…",
+  "step1": "1. Alege un video",
+  "step2": "2. Alege partea care rămâne",
+  "step3": "3. Salvează",
+  "theme.dark": "Întunecat",
+  "theme.light": "Luminos"
+ },
+ "sr": {
+  "btn.again": "Iseci ponovo",
+  "btn.cancel": "Otkaži",
+  "btn.download": "Preuzmi",
+  "btn.endHere": "Kraj ovde",
+  "btn.export": "Iseci i sačuvaj {n} s",
+  "btn.frame": "Sačuvaj kadar",
+  "btn.pause": "Pauza",
+  "btn.play": "Pusti",
+  "btn.startHere": "Početak ovde",
+  "btn.whole": "Ceo snimak",
+  "drop.hint": "MP4, WebM, MOV ili bilo šta što pregledač može da pusti. Ostaje na tvom uređaju.",
+  "drop.title": "Prevuci video ovde ili pritisni da izabereš",
+  "err.cannotRecord": "Pregledač ne može da snimi video.",
+  "err.capture": "Pregledač ne može da zahvati video. Probaj Chrome, Edge ili Firefox.",
+  "err.empty": "Ništa nije snimljeno. Probaj ponovo ili izaberi drugi format.",
+  "err.format": "Pregledač ne prijavljuje nijedan upotrebljiv format snimanja.",
+  "err.frame": "Kadar nije mogao da se pročita.",
+  "err.notvideo": "To ne liči na video fajl. Izaberi MP4, WebM ili MOV.",
+  "err.recorder": "Pregledač ne može da snima video (nema MediaRecorder). Probaj Chrome, Edge, Firefox ili Safari 14.1 ili noviji.",
+  "err.refused": "Pregledač je odbio da počne snimanje: {e}",
+  "err.start": "Snimanje nije počelo: {e}",
+  "err.tooShort": "Zadržani deo je kraći od desetinke sekunde. Pomeri kraj dalje.",
+  "fmt.mp4": "MP4",
+  "fmt.mp4a": "MP4 (video H.264, audio AAC)",
+  "fmt.vp8": "WebM (video VP8, audio Opus)",
+  "fmt.vp9": "WebM (video VP9, audio Opus)",
+  "fmt.webm": "WebM",
+  "foot.license": "Apache-2.0. Bez praćenja, bez kolačića.",
+  "foot.part": "Deo sajta <a href=\"https://freehtml.dev/\">freehtml.dev</a> — besplatne alatke koje rade u tvom pregledaču.",
+  "foot.support": "Podrži",
+  "h1": "Iseci video u pregledaču",
+  "info.cancelled": "Otkazano. Ništa nije sačuvano.",
+  "info.frame": "Kadar sačuvan kao PNG na {t}.",
+  "info.saved": "Sačuvano. Pogledaj isečak ispod, pa ga preuzmi.",
+  "info.silent": "Pregledač ne može da zahvati zvuk snimka, pa će isečak biti nem.",
+  "label.end": "Kraj",
+  "label.start": "Početak",
+  "lang.label": "Jezik",
+  "lede": "Izabereš početak i kraj, ukloniš zvuk ako želiš i sačuvaš manji fajl. Snimak se obrađuje na tvom uređaju — ne ide na server, nije potreban nalog i ništa se ne otprema.",
+  "meta.long": "dužina",
+  "meta.original": "original",
+  "meta.unknown": "format nepoznat",
+  "notes.1": "<b>Fajl ne napušta uređaj.</b> Nema servera: snimak se dekodira i ponovo kodira u ovoj stranici, u tvom pregledaču. Mrežu možeš da isključiš kad se stranica učita.",
+  "notes.2": "<b>Isečak se pušta jednom, dok se čuva.</b> Pregledač ne može da iskopira deo komprimovanog snimka bez ponovnog kodiranja, pa alatka pusti zadržani deo i snimi ga ponovo. Isečak od 30 sekundi traje oko 30 sekundi. Dok snima, ništa se ne čuje.",
+  "notes.3": "<b>Šta izlazi:</b> {fmt}, ista veličina slike kao original, bez kadrova van izabranog dela.",
+  "notes.4": "<b>Šta ne radi:</b> spajanje više isečaka, dodavanje titlova ili promenu rezolucije. Za to ti treba pravi editor.",
+  "notes.5": "<b>Sačuvaj kadar</b> upisuje PNG sa trenutnom slikom, bez ikakvog ponovnog kodiranja — korisno za naslovnu sliku.",
+  "notes.title": "Kako radi i šta da očekuješ",
+  "opt.mute": "Ukloni zvuk",
+  "opt.quality": "Veličina i kvalitet",
+  "pill.account": "Bez naloga",
+  "pill.local": "Bez otpremanja",
+  "pill.offline": "Radi oflajn",
+  "prog.working": "Radim…",
+  "q.balanced": "Uravnotežen",
+  "q.high": "Visok — veći fajl",
+  "q.small": "Mali — za deljenje",
+  "state.done": "Gotovo.",
+  "state.ready": "Priprema snimka…",
+  "state.rewind": "Vraćanje na početak…",
+  "state.saving": "Čuvanje zadržanog dela — pušta se jednom…",
+  "step1": "1. Izaberi video",
+  "step2": "2. Podesi deo koji ostaje",
+  "step3": "3. Sačuvaj",
+  "theme.dark": "Tamno",
+  "theme.light": "Svetlo"
+ },
+ "src": {
+  "btn.again": "Исеци поново",
+  "btn.cancel": "Откажи",
+  "btn.download": "Преузми",
+  "btn.endHere": "Крај овде",
+  "btn.export": "Исеци и сачувај {n} с",
+  "btn.frame": "Сачувај кадар",
+  "btn.pause": "Пауза",
+  "btn.play": "Пусти",
+  "btn.startHere": "Почетак овде",
+  "btn.whole": "Цео снимак",
+  "drop.hint": "MP4, WebM, MOV или било шта што прегледач може да пусти. Остаје на твом уређају.",
+  "drop.title": "Превуци видео овде или притисни да изабереш",
+  "err.cannotRecord": "Прегледач не може да сними видео.",
+  "err.capture": "Прегледач не може да захвати видео. Пробај Chrome, Edge или Firefox.",
+  "err.empty": "Ништа није снимљено. Пробај поново или изабери други формат.",
+  "err.format": "Прегледач не пријављује ниједан употребљив формат снимања.",
+  "err.frame": "Кадар није могао да се прочита.",
+  "err.notvideo": "То не личи на видео фајл. Изабери MP4, WebM или MOV.",
+  "err.recorder": "Прегледач не може да снима видео (нема MediaRecorder). Пробај Chrome, Edge, Firefox или Safari 14.1 или новији.",
+  "err.refused": "Прегледач је одбио да почне снимање: {e}",
+  "err.start": "Снимање није почело: {e}",
+  "err.tooShort": "Задржани део је краћи од десетинке секунде. Помери крај даље.",
+  "fmt.mp4": "MP4",
+  "fmt.mp4a": "MP4 (видео H.264, аудио AAC)",
+  "fmt.vp8": "WebM (видео VP8, аудио Opus)",
+  "fmt.vp9": "WebM (видео VP9, аудио Opus)",
+  "fmt.webm": "WebM",
+  "foot.license": "Apache-2.0. Без праћења, без колачића.",
+  "foot.part": "Део сајта <a href=\"https://freehtml.dev/\">freehtml.dev</a> — бесплатне алатке које раде у твом прегледачу.",
+  "foot.support": "Подржи",
+  "h1": "Исеци видео у прегледачу",
+  "info.cancelled": "Отказано. Ништа није сачувано.",
+  "info.frame": "Кадар сачуван као PNG на {t}.",
+  "info.saved": "Сачувано. Погледај исечак испод, па га преузми.",
+  "info.silent": "Прегледач не може да захвати звук снимка, па ће исечак бити нем.",
+  "label.end": "Крај",
+  "label.start": "Почетак",
+  "lang.label": "Језик",
+  "lede": "Изабереш почетак и крај, уклониш звук ако желиш и сачуваш мањи фајл. Снимак се обрађује на твом уређају — не иде на сервер, није потребан налог и ништа се не отпрема.",
+  "meta.long": "дужина",
+  "meta.original": "оригинал",
+  "meta.unknown": "формат непознат",
+  "notes.1": "<b>Фајл не напушта уређај.</b> Нема сервера: снимак се декодира и поново кодира у овој страници, у твом прегледачу. Мрежу можеш да искључиш кад се страница учита.",
+  "notes.2": "<b>Исечак се пушта једном, док се чува.</b> Прегледач не може да ископира део компримованог снимка без поновног кодирања, па алатка пусти задржани део и сними га поново. Исечак од 30 секунди траје око 30 секунди. Док снима, ништа се не чује.",
+  "notes.3": "<b>Шта излази:</b> {fmt}, иста величина слике као оригинал, без кадрова ван изабраног дела.",
+  "notes.4": "<b>Шта не ради:</b> спајање више исечака, додавање титлова или промену резолуције. За то ти треба прави едитор.",
+  "notes.5": "<b>Сачувај кадар</b> уписује PNG са тренутном сликом, без икаквог поновног кодирања — корисно за насловну слику.",
+  "notes.title": "Како ради и шта да очекујеш",
+  "opt.mute": "Уклони звук",
+  "opt.quality": "Величина и квалитет",
+  "pill.account": "Без налога",
+  "pill.local": "Без отпремања",
+  "pill.offline": "Ради офлајн",
+  "prog.working": "Радим…",
+  "q.balanced": "Уравнотежен",
+  "q.high": "Висок — већи фајл",
+  "q.small": "Мали — за дељење",
+  "state.done": "Готово.",
+  "state.ready": "Припрема снимка…",
+  "state.rewind": "Враћање на почетак…",
+  "state.saving": "Чување задржаног дела — пушта се једном…",
+  "step1": "1. Изабери видео",
+  "step2": "2. Подеси део који остаје",
+  "step3": "3. Сачувај",
+  "theme.dark": "Тамно",
+  "theme.light": "Светло"
+ }
+};
+var META = {
+ "en": {
+  "htmlLang": "en",
+  "btn": "EN",
+  "title": "Video Trimmer - cut a video in your browser, nothing uploaded",
+  "desc": "Cut and trim a video in your browser: pick the start and end point, mute the sound or shrink the file. Nothing is uploaded - the clip never leaves your device. Works offline, no account, Apache-2.0.",
+  "ogTitle": "Video Trimmer - cut a video in your browser",
+  "ogDesc": "Trim a video without uploading it. Pick start and end on a timeline, optionally mute the audio, export a smaller file. Runs fully on your device.",
+  "ldDesc": "Cut and trim a video in the browser without uploading it: choose the start and end point, optionally remove the audio, export a smaller file. All processing happens on the device."
+ },
+ "ro": {
+  "htmlLang": "ro",
+  "btn": "RO",
+  "title": "Video Trimmer - taie un video în browser, fără upload",
+  "desc": "Taie un videoclip în browser: alegi începutul și sfârșitul, scoți sunetul sau micșorezi fișierul. Nu se încarcă nimic - clipul nu părăsește dispozitivul. Merge offline, fără cont, Apache-2.0.",
+  "ogTitle": "Video Trimmer - taie un video în browser",
+  "ogDesc": "Taie un videoclip fără să-l înearci. Alegi începutul și sfârșitul pe o bară de timp, poți scoate sunetul și exporți un fișier mai mic. Rulează complet pe dispozitivul tău.",
+  "ldDesc": "Taie un videoclip în browser fără să-l încarci: alegi începutul și sfârșitul, scoți sunetul și exporți un fișier mai mic. Toată prelucrarea se face pe dispozitiv."
+ },
+ "sr": {
+  "htmlLang": "sr",
+  "btn": "SR",
+  "title": "Video Trimmer - iseci video u pregledaču, bez otpremanja",
+  "desc": "Iseci video u pregledaču: izabereš početak i kraj, ukloniš zvuk ili smanjiš fajl. Ništa se ne otprema - snimak ne napušta uređaj. Radi oflajn, bez naloga, Apache-2.0.",
+  "ogTitle": "Video Trimmer - iseci video u pregledaču",
+  "ogDesc": "Iseci video bez otpremanja. Izabereš početak i kraj na traci sa vremenom, po želji ukloniš zvuk i izvezeš manji fajl. Radi potpuno na tvom uređaju.",
+  "ldDesc": "Iseci video u pregledaču bez otpremanja: izabereš početak i kraj, ukloniš zvuk i izvezeš manji fajl. Sva obrada se odvija na uređaju."
+ },
+ "src": {
+  "htmlLang": "sr-Cyrl",
+  "btn": "СР",
+  "title": "Video Trimmer - исеци видео у прегледачу, без отпремања",
+  "desc": "Исеци видео у прегледачу: изабереш почетак и крај, уклониш звук или смањиш фајл. Ништа се не отпрема - снимак не напушта уређај. Ради офлајн, без налога, Apache-2.0.",
+  "ogTitle": "Video Trimmer - исеци видео у прегледачу",
+  "ogDesc": "Исеци видео без отпремања. Изабереш почетак и крај на траци са временом, по жељи уклониш звук и извезеш мањи фајл. Ради потпуно на твом уређају.",
+  "ldDesc": "Исеци видео у прегледачу без отпремања: изабереш почетак и крај, уклониш звук и извезеш мањи фајл. Сва обрада се одвија на уређају."
+ }
+};
+var LANG_KEY = "video-trim-lang";
 </script>
 
 <script>
@@ -470,6 +799,13 @@ html, body { overflow-x: hidden; }
   var result = $('result'), rName = $('rName'), rMeta = $('rMeta'), rPreview = $('rPreview');
   var download = $('download'), againBtn = $('againBtn'), statusBox = $('status');
   var fmtNote = $('fmtNote'), themeBtn = $('themeBtn'), themeLabel = $('themeLabel');
+  var langSel = $('langSel');
+
+  var ICON_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
+  var ICON_PAUSE = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="7" y="5" width="3.5" height="14" rx="1"/><rect x="13.5" y="5" width="3.5" height="14" rx="1"/></svg>';
+
+  // ---------- limba ----------
+  var lang = 'en';
 
   // ---------- stare ----------
   var state = {
@@ -511,28 +847,44 @@ html, body { overflow-x: hidden; }
   fixDuration(video);
   fixDuration(rPreview);
 
-  function say(msg, kind) {
-    if (!msg) { statusBox.className = 'status'; statusBox.textContent = ''; return; }
+  var lastSay = null, pstateKey = 'prog.working';
+
+  // Mesajele se tin minte ca chei, nu ca text: la schimbarea limbii se rescriu.
+  function say(key, kind, params) {
+    if (!key) { lastSay = null; statusBox.className = 'status'; statusBox.textContent = ''; return; }
+    lastSay = { key: key, kind: kind, params: params };
     statusBox.className = 'status on ' + (kind || 'info');
-    statusBox.textContent = msg;
+    statusBox.textContent = t(key, params);
   }
+  function setPstate(key) { pstateKey = key; pstate.textContent = t(key); }
+
+  function t(key, params) {
+    var dict = I18N[lang] || I18N.en;
+    var str = dict[key];
+    if (str == null) str = I18N.en[key];
+    if (str == null) return key;
+    if (params) str = str.replace(/\{(\w+)\}/g, function (m, k) { return params[k] != null ? params[k] : m; });
+    return str;
+  }
+  function fmtLabel() { return chosen ? t(chosen[1]) : t('meta.unknown'); }
+  function isLight() { return document.documentElement.classList.contains('theme-light'); }
 
   // ---------- ce poate browserul ----------
   var CANDIDATES = [
-    ['video/webm;codecs=vp9,opus', 'WebM (VP9 video, Opus audio)'],
-    ['video/webm;codecs=vp8,opus', 'WebM (VP8 video, Opus audio)'],
-    ['video/webm', 'WebM'],
-    ['video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'MP4 (H.264 video, AAC audio)'],
-    ['video/mp4', 'MP4']
+    ['video/webm;codecs=vp9,opus', 'fmt.vp9'],
+    ['video/webm;codecs=vp8,opus', 'fmt.vp8'],
+    ['video/webm', 'fmt.webm'],
+    ['video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'fmt.mp4a'],
+    ['video/mp4', 'fmt.mp4']
   ];
   var chosen = null;
   (function pickFormat() {
-    if (typeof MediaRecorder === 'undefined') { say('This browser cannot record video (MediaRecorder is missing). Try Chrome, Edge, Firefox or Safari 14.1 or newer.', 'err'); return; }
+    if (typeof MediaRecorder === 'undefined') { say('err.recorder', 'err'); return; }
     for (var i = 0; i < CANDIDATES.length; i++) {
       try { if (MediaRecorder.isTypeSupported(CANDIDATES[i][0])) { chosen = CANDIDATES[i]; break; } } catch (e) {}
     }
-    if (!chosen) { say('This browser reports no usable recording format.', 'err'); return; }
-    fmtNote.textContent = chosen[1];
+    if (!chosen) { say('err.format', 'err'); return; }
+    if (fmtNote) fmtNote.textContent = fmtLabel();
   })();
 
   function extension() { return chosen && chosen[0].indexOf('mp4') > -1 ? 'mp4' : 'webm'; }
@@ -542,7 +894,7 @@ html, body { overflow-x: hidden; }
     document.documentElement.classList.toggle('theme-light', light);
     document.documentElement.classList.toggle('theme-dark', !light);
     themeBtn.setAttribute('aria-pressed', light ? 'true' : 'false');
-    themeLabel.textContent = light ? 'Dark' : 'Light';
+    themeLabel.textContent = light ? t('theme.dark') : t('theme.light');
     var m = document.querySelector('meta[name="theme-color"]');
     if (m) m.setAttribute('content', light ? '#f4f7fb' : '#0b1220');
     try { localStorage.setItem('video-trim-theme', light ? 'light' : 'dark'); } catch (e) {}
@@ -574,7 +926,7 @@ html, body { overflow-x: hidden; }
 
   function loadFile(f) {
     if (!/^video\//.test(f.type) && !/\.(mp4|webm|mov|m4v|mkv|ogv)$/i.test(f.name)) {
-      say('That does not look like a video file. Pick an MP4, WebM or MOV.', 'err');
+      say('err.notvideo', 'err');
       return;
     }
     resetAll();
@@ -619,10 +971,10 @@ html, body { overflow-x: hidden; }
 
   function renderMeta() {
     var parts = [];
-    parts.push('<span class="pill"><b>' + fmt(state.duration) + '</b> long</span>');
+    parts.push('<span class="pill"><b>' + fmt(state.duration) + '</b> ' + t('meta.long') + '</span>');
     if (video.videoWidth) parts.push('<span class="pill"><b>' + video.videoWidth + '×' + video.videoHeight + '</b></span>');
-    if (state.file) parts.push('<span class="pill"><b>' + fmtBytes(state.file.size) + '</b> original</span>');
-    parts.push('<span class="pill">' + (chosen ? chosen[1] : 'format unknown') + '</span>');
+    if (state.file) parts.push('<span class="pill"><b>' + fmtBytes(state.file.size) + '</b> ' + t('meta.original') + '</span>');
+    parts.push('<span class="pill">' + fmtLabel() + '</span>');
     metaBox.innerHTML = parts.join('');
   }
 
@@ -638,7 +990,7 @@ html, body { overflow-x: hidden; }
     sel.style.width = Math.max(0, (state.end - state.start) / d * 100) + '%';
     positionPlayhead();
     var len = state.end - state.start;
-    exportLabel.textContent = 'Cut and save ' + len.toFixed(1) + ' s';
+    exportLabel.textContent = t('btn.export', { n: len.toFixed(1) });
     exportBtn.disabled = state.busy || len <= 0;
   }
   function positionPlayhead() {
@@ -677,13 +1029,12 @@ html, body { overflow-x: hidden; }
       video.pause();
     }
   });
-  video.addEventListener('play', function () {
-    playBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="7" y="5" width="3.5" height="14" rx="1"/><rect x="13.5" y="5" width="3.5" height="14" rx="1"/></svg> Pause';
-    ensureAudioGraph(); resumeAudio();
-  });
-  video.addEventListener('pause', function () {
-    playBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg> Play';
-  });
+  function paintPlay() {
+    var paused = video.paused;
+    playBtn.innerHTML = (paused ? ICON_PLAY : ICON_PAUSE) + ' <span>' + t(paused ? 'btn.play' : 'btn.pause') + '</span>';
+  }
+  video.addEventListener('play', function () { paintPlay(); ensureAudioGraph(); resumeAudio(); });
+  video.addEventListener('pause', paintPlay);
 
   // ---------- sunetul: elementul nu se aude, decit cind vrem ----------
   // Un <video> mincat de WebAudio nu se mai aude pe difuzoare decit daca legam sursa la iesire.
@@ -767,9 +1118,9 @@ html, body { overflow-x: hidden; }
 
   function startExport() {
     if (state.busy || !state.file) return;
-    if (!chosen) { say('This browser cannot record video.', 'err'); return; }
+    if (!chosen) { say('err.cannotRecord', 'err'); return; }
     var start = state.start, end = state.end;
-    if (end - start < 0.1) { say('The kept part is shorter than a tenth of a second. Move the end further.', 'err'); return; }
+    if (end - start < 0.1) { say('err.tooShort', 'err'); return; }
 
     state.cancelled = false;
     say('');
@@ -777,7 +1128,7 @@ html, body { overflow-x: hidden; }
     setBusy(true);
     pbar.style.width = '0%';
     pct.textContent = '0%';
-    pstate.textContent = 'Getting the video ready…';
+    setPstate('state.ready');
 
     ensureAudioGraph();
     var stream = videoCaptureStream();
@@ -785,8 +1136,8 @@ html, body { overflow-x: hidden; }
     if (!stream) {
       drawn = canvasCaptureStream();
       stream = drawn;
-      if (!stream) { setBusy(false); say('This browser cannot capture a video. Try Chrome, Edge or Firefox.', 'err'); return; }
-      say('This browser cannot capture the sound of a video, so the clip will be silent.', 'info');
+      if (!stream) { setBusy(false); say('err.capture', 'err'); return; }
+      say('info.silent', 'info');
     }
 
     var tracks = stream.getVideoTracks().slice(0, 1);
@@ -803,7 +1154,7 @@ html, body { overflow-x: hidden; }
         audioBitsPerSecond: 128000
       });
     } catch (e) {
-      setBusy(false); say('The browser refused to start recording: ' + e.message, 'err');
+      setBusy(false); say('err.refused', 'err', { e: e.message });
       stopStream(drawn, stream); return;
     }
     state.recorder = rec;
@@ -815,21 +1166,21 @@ html, body { overflow-x: hidden; }
       speakers(true);
       stopStream(drawn, stream);
       setBusy(false);
-      if (state.cancelled) { say('Cancelled. Nothing was saved.', 'info'); return; }
+      if (state.cancelled) { say('info.cancelled', 'info'); return; }
       var blob = new Blob(chunks, { type: chosen[0].split(';')[0] });
-      if (!blob.size) { say('Nothing was recorded. Try again, or pick another format.', 'err'); return; }
+      if (!blob.size) { say('err.empty', 'err'); return; }
       showResult(blob, start, stoppedAt);
     });
 
     speakers(false); // in timpul inregistrarii nu se aude nimic
     video.pause();
-    pstate.textContent = 'Rewinding to the start point…';
+    setPstate('state.rewind');
 
     var seekTarget = start;
     var onSeeked = function () {
       video.removeEventListener('seeked', onSeeked);
-      try { rec.start(250); } catch (e) { setBusy(false); say('Could not start recording: ' + e.message, 'err'); return; }
-      pstate.textContent = 'Saving the kept part — it plays once…';
+      try { rec.start(250); } catch (e) { setBusy(false); say('err.start', 'err', { e: e.message }); return; }
+      setPstate('state.saving');
       video.play().catch(function () {});
       tick();
     };
@@ -866,12 +1217,12 @@ html, body { overflow-x: hidden; }
     download.setAttribute('download', name);
     rName.textContent = name;
     rPreview.src = state.resultUrl;
-    rMeta.innerHTML = '<span>' + fmtBytes(blob.size) + '</span><span>·</span><span>' + fmt(stoppedAt - start) + ' long</span><span>·</span><span>' + chosen[1] + '</span>';
+    rMeta.innerHTML = '<span>' + fmtBytes(blob.size) + '</span><span>·</span><span>' + fmt(stoppedAt - start) + ' ' + t('meta.long') + '</span><span>·</span><span>' + fmtLabel() + '</span>';
     result.className = 'result on';
-    pstate.textContent = 'Done.';
+    setPstate('state.done');
     pct.textContent = '100%';
     pbar.style.width = '100%';
-    say('Saved. Check the clip below, then download it.', 'info');
+    say('info.saved', 'info');
     result.scrollIntoView({ block: 'nearest' });
   }
 
@@ -883,14 +1234,14 @@ html, body { overflow-x: hidden; }
     c.height = video.videoHeight || 360;
     c.getContext('2d').drawImage(video, 0, 0, c.width, c.height);
     c.toBlob(function (blob) {
-      if (!blob) { say('Could not read the frame.', 'err'); return; }
+      if (!blob) { say('err.frame', 'err'); return; }
       var url = URL.createObjectURL(blob);
       var a = document.createElement('a');
       a.href = url;
       a.download = (state.file.name.replace(/\.[^.]+$/, '') || 'frame') + '-' + fmt(video.currentTime).replace(/[:.]/g, '') + '.png';
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
-      say('Frame saved as a PNG at ' + fmt(video.currentTime) + '.', 'info');
+      say('info.frame', 'info', { t: fmt(video.currentTime) });
     }, 'image/png');
   });
 
@@ -911,6 +1262,55 @@ html, body { overflow-x: hidden; }
       navigator.serviceWorker.register('service-worker.js').catch(function () {});
     });
   }
+
+  // ---------- limba ----------
+  // Regula casei: prima vizita e in engleza, indiferent de limba browserului.
+  // Alegerea se pastreaza in localStorage. sr = sarba latina, src = sarba chirilica.
+  function applyLang(code, save) {
+    lang = I18N[code] ? code : 'en';
+    var meta = META[lang];
+    document.documentElement.lang = meta.htmlLang;
+    document.title = meta.title;
+    var m;
+    m = document.querySelector('meta[name="description"]'); if (m) m.setAttribute('content', meta.desc);
+    m = document.querySelector('meta[property="og:title"]'); if (m) m.setAttribute('content', meta.ogTitle);
+    m = document.querySelector('meta[property="og:description"]'); if (m) m.setAttribute('content', meta.ogDesc);
+    var ld = $('ldjson');
+    if (ld) {
+      try {
+        var data = JSON.parse(ld.textContent);
+        data.inLanguage = [meta.htmlLang];
+        data.description = meta.ldDesc;
+        ld.textContent = JSON.stringify(data);
+      } catch (e) {}
+    }
+    var simple = document.querySelectorAll('[data-i18n]');
+    for (var i = 0; i < simple.length; i++) simple[i].textContent = t(simple[i].getAttribute('data-i18n'));
+    var rich = document.querySelectorAll('[data-i18n-html]');
+    for (var j = 0; j < rich.length; j++) {
+      var key = rich[j].getAttribute('data-i18n-html');
+      var html = t(key);
+      if (key === 'notes.3') html = html.replace('{fmt}', '<span id="fmtNote">' + fmtLabel() + '</span>');
+      rich[j].innerHTML = html;
+    }
+    fmtNote = $('fmtNote');
+    langSel.value = lang;
+    langSel.setAttribute('aria-label', t('lang.label'));
+    themeLabel.textContent = isLight() ? t('theme.dark') : t('theme.light');
+    paintPlay();
+    if (state.duration) { renderMeta(); syncRange(); }
+    if (lastSay) say(lastSay.key, lastSay.kind, lastSay.params);
+    if (pstateKey) pstate.textContent = t(pstateKey);
+    if (save) { try { localStorage.setItem(LANG_KEY, lang); } catch (e) {} }
+  }
+
+  langSel.addEventListener('change', function () { applyLang(langSel.value, true); });
+
+  (function initLang() {
+    var saved = null;
+    try { saved = localStorage.getItem(LANG_KEY); } catch (e) {}
+    applyLang(saved && I18N[saved] ? saved : 'en', false);
+  })();
 
   // Space = play/pause, dar nu cind scriem intr-un cimp
   document.addEventListener('keydown', function (e) {

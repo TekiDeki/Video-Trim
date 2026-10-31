@@ -12,7 +12,10 @@ Ce verifica, in ordinea in care se intimpla un utilizator:
   6. exportul cu sunetul scos merge pina la capat;
   7. "Save this frame" descarca un PNG;
   8. la 320px nu exista derulare pe orizontala, iar pe pointer gros fiecare tinta
-     de atingere are cel putin 44x44px (regula casei, WCAG 2.5.5).
+     de atingere are cel putin 44x44px (regula casei, WCAG 2.5.5);
+  9. cele patru limbi (en, ro, sr latina, sr chirilica): titlu, h1, descriere, JSON-LD,
+     <html lang>, linia de sprijin, memorarea alegerii si faptul ca nici o limba nu
+     rupe asezarea la 320px.
 
 Folosire:
     python3 tests/test_video.py             # pagina locala, servita pe 127.0.0.1
@@ -283,6 +286,82 @@ def main():
             check(len(small) == 0, "%dpx: toate tintele au cel putin 44px" % width, small[:4])
             check(len(errs) == 0, "%dpx: fara erori de consola" % width, errs[:2])
             ctx2.close()
+
+        # ---------------- 8. limbile
+        print("\n8. Cele patru limbi")
+        ctx3 = browser.new_context(viewport={"width": 390, "height": 844}, has_touch=True,
+                                   device_scale_factor=2, is_mobile=True)
+        pg = ctx3.new_page()
+        errs = []
+        pg.on("console", lambda m: errs.append(m.text) if m.type == "error" else None)
+        pg.on("pageerror", lambda e: errs.append(str(e)))
+        pg.goto(url, wait_until="load")
+
+        valori = pg.eval_on_selector_all("#langSel option", "els => els.map(e => e.value)")
+        check(valori == ["en", "ro", "sr", "src"], "comutatorul are exact cele patru limbi", valori)
+        check(pg.evaluate("() => document.documentElement.lang") == "en",
+              "prima vizita e in engleza, nu dupa limba browserului")
+        check(pg.eval_on_selector("#langSel", "e => e.value") == "en", "comutatorul arata engleza")
+
+        # linia de sprijin, regula casei
+        sprijin = pg.eval_on_selector_all('footer a[href*="paypal.me" i]', "els => els.map(e => e.href)")
+        check(len(sprijin) == 1 and "paypal.me/tekideki" in sprijin[0].lower(),
+              "subsolul are linia de sprijin catre PayPal.me/TekiDeki", sprijin)
+
+        INTERZISE = "\u0451\u044a\u044b\u044d\u044e\u044f"   # litere rusesti, interzise in sarba
+        LIMBI = [("ro", "ro"), ("sr", "sr"), ("src", "sr-Cyrl"), ("en", "en")]
+        texte = {}
+        for cod, html_lang in LIMBI:
+            pg.select_option("#langSel", cod)
+            pg.wait_for_timeout(200)
+            h1 = pg.inner_text("h1")
+            lede = pg.inner_text(".lede")
+            titlu = pg.title()
+            desc = pg.eval_on_selector('meta[name="description"]', "e => e.content")
+            og = pg.eval_on_selector('meta[property="og:description"]', "e => e.content")
+            ld = pg.evaluate("() => JSON.parse(document.getElementById('ldjson').textContent)")
+            hl = pg.evaluate("() => document.documentElement.lang")
+            butoane = pg.inner_text("#setStart")
+            check(hl == html_lang, "%s: <html lang> e %s" % (cod, html_lang), hl)
+            check(ld["inLanguage"] == [html_lang], "%s: JSON-LD declara limba" % cod, ld["inLanguage"])
+            check(ld["description"] and ld["description"] !=
+                  pg.evaluate("() => JSON.parse(document.getElementById('ldjson').textContent).name"),
+                  "%s: JSON-LD are descrierea tradusa" % cod, (ld["description"] or "")[:40])
+            check(desc and og and titlu.lower().find("video") >= 0,
+                  "%s: titlu, descriere si og:description sunt scrise" % cod, titlu[:50])
+            check(butoane.strip() != "", "%s: butoanele au text" % cod, butoane)
+            if cod in ("sr", "src"):
+                gasite = sorted({c for c in (h1 + lede + desc + butoane) if c in INTERZISE})
+                check(not gasite, "%s: fara litere rusesti" % cod, gasite)
+            texte[cod] = (h1, titlu, desc)
+            check(pg.evaluate("() => document.documentElement.scrollWidth - window.innerWidth") <= 1,
+                  "%s: 390px fara derulare pe orizontala" % cod)
+
+        check(len({v[0] for v in texte.values()}) == 4, "cele patru titluri mari sunt diferite",
+              [v[0] for v in texte.values()])
+        check(texte["en"][0] != texte["ro"][0] and "video" in texte["en"][0].lower(),
+              "intoarcerea pe engleza readuce textul englez", texte["en"][0])
+
+        # alegerea se pastreaza dupa reincarcare (regula casei)
+        pg.select_option("#langSel", "ro")
+        pg.wait_for_timeout(150)
+        pg.reload(wait_until="load")
+        pg.wait_for_timeout(200)
+        check(pg.eval_on_selector("#langSel", "e => e.value") == "ro",
+              "limba aleasa se pastreaza dupa reincarcare", pg.eval_on_selector("#langSel", "e => e.value"))
+        check(pg.evaluate("() => document.documentElement.lang") == "ro",
+              "dupa reincarcare, <html lang> e tot ro")
+
+        # cea mai lunga limba nu rupe asezarea la 320px
+        for cod in ("ro", "sr", "src"):
+            pg.select_option("#langSel", cod)
+            pg.set_viewport_size({"width": 320, "height": 780})
+            pg.wait_for_timeout(200)
+            over = pg.evaluate("() => document.documentElement.scrollWidth - window.innerWidth")
+            check(over <= 1, "%s: 320px fara derulare pe orizontala" % cod, str(over) + "px")
+
+        check(len(errs) == 0, "schimbarea limbii nu produce erori de consola", errs[:2])
+        ctx3.close()
 
         browser.close()
 
