@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en" class="theme-dark"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' blob: data:; connect-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; upgrade-insecure-requests">
+<!-- CSP prin meta: GitHub Pages nu permite antete HTTP. Fara frame-ancestors/form-action, pe care meta nu le accepta. -->
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0b1220">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Video Trimmer">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="description" content="Cut and trim a video in your browser: pick the start and end point, mute the sound or shrink the file. Nothing is uploaded - the clip never leaves your device. Works offline, no account, Apache-2.0.">
+<link rel="canonical" href="https://tekideki.github.io/Video-Trim/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Video Trimmer">
+<meta property="og:title" content="Video Trimmer - cut a video in your browser">
+<meta property="og:description" content="Trim a video without uploading it. Pick start and end on a timeline, optionally mute the audio, export a smaller file. Runs fully on your device.">
+<meta property="og:url" content="https://tekideki.github.io/Video-Trim/">
+<meta property="og:image" content="https://tekideki.github.io/Video-Trim/icon-512.png">
+<meta name="twitter:card" content="summary">
+<title>Video Trimmer - cut a video in your browser, nothing uploaded</title>
+<style>
+    /* ===== Foundation ===== */
+    *, *::before, *::after { box-sizing: border-box; }
+    html {
+        -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+        background: var(--bg);
+        -webkit-tap-highlight-color: transparent;
+        scroll-behavior: smooth;
+    }
+    img, svg, video, canvas { max-width: 100%; height: auto; }
+    button, select, input, textarea { max-width: 100%; font-family: inherit; font-size: 1rem; }
+    button, select, input[type="range"], .drop { touch-action: manipulation; }
+
+    :root, :root.theme-dark {
+        --bg: #0b1220;
+        --bg-2: #0f1a2e;
+        --card: #131f36;
+        --card-2: #1b2b47;
+        --text: #eef2f8;
+        --muted: #9fb0c9;
+        --line: #2a3d5c;
+        --accent: #4cc2ff;
+        --accent-ink: #04222f;
+        --accent-2: #7cf7c4;
+        --warn: #ffcf6b;
+        --bad: #ff8b8b;
+        --shadow: 0 10px 30px rgba(0,0,0,.35);
+        --radius: 14px;
+    }
+    :root.theme-light {
+        --bg: #f4f7fb;
+        --bg-2: #eaf0f8;
+        --card: #ffffff;
+        --card-2: #f0f5fc;
+        --text: #121a26;
+        --muted: #55647a;
+        --line: #d3ddea;
+        --accent: #0b74c4;
+        --accent-ink: #ffffff;
+        --accent-2: #0f9d76;
+        --warn: #8a5a00;
+        --bad: #b3261e;
+        --shadow: 0 8px 24px rgba(20,40,70,.12);
+    }
+
+    body {
+        margin: 0;
+        min-height: 100vh;
+        background: radial-gradient(1200px 600px at 15% -10%, var(--bg-2), var(--bg) 60%) fixed;
+        color: var(--text);
+        font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        padding: 0 0 48px;
+    }
+    .wrap { width: 100%; max-width: 880px; margin: 0 auto; padding: 0 16px; }
+
+    /* ===== Header ===== */
+    header.top {
+        display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+        padding: 18px 0 10px;
+    }
+    .brand {
+        display: inline-flex; align-items: center; gap: 10px;
+        color: var(--text); text-decoration: none; font-weight: 700; letter-spacing: -.01em;
+    }
+    .brand .mark {
+        width: 34px; height: 34px; border-radius: 10px; flex: none;
+        background: linear-gradient(140deg, var(--accent), var(--accent-2));
+        display: grid; place-items: center; color: var(--accent-ink);
+    }
+    .brand .mark svg { width: 20px; height: 20px; display: block; }
+    .spacer { flex: 1 1 auto; }
+    .ghost {
+        background: var(--card); color: var(--text); border: 1px solid var(--line);
+        border-radius: 999px; padding: 10px 14px; cursor: pointer;
+        display: inline-flex; align-items: center; gap: 8px; min-height: 44px;
+    }
+    .ghost:hover { background: var(--card-2); }
+
+    /* ===== Intro ===== */
+    h1 { font-size: clamp(1.5rem, 4.4vw, 2.15rem); line-height: 1.2; margin: 14px 0 6px; letter-spacing: -.02em; }
+    .lede { color: var(--muted); margin: 0 0 18px; max-width: 62ch; }
+    .pill-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 20px; padding: 0; list-style: none; }
+    .pill {
+        display: inline-flex; align-items: center; gap: 6px;
+        background: var(--card); border: 1px solid var(--line); border-radius: 999px;
+        padding: 5px 11px; font-size: .82rem; color: var(--muted);
+    }
+    .pill b { color: var(--text); font-weight: 600; }
+
+    /* ===== Cards ===== */
+    .card {
+        background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+        box-shadow: var(--shadow); padding: 18px; margin: 0 0 16px;
+    }
+    .card h2 { font-size: 1.02rem; margin: 0 0 12px; letter-spacing: -.01em; }
+
+    /* ===== Drop zone ===== */
+    .drop {
+        border: 2px dashed var(--line); border-radius: var(--radius);
+        background: var(--card-2); padding: 26px 18px; text-align: center;
+        cursor: pointer; transition: border-color .15s ease, background .15s ease;
+    }
+    .drop:hover, .drop:focus-visible { border-color: var(--accent); }
+    .drop.is-over { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--card-2)); }
+    .drop svg { width: 42px; height: 42px; color: var(--accent); }
+    .drop p { margin: 8px 0 4px; font-weight: 600; }
+    .drop small { color: var(--muted); display: block; }
+    .drop input[type="file"] { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+    .drop-wrap { position: relative; }
+
+    /* ===== Video + meta ===== */
+    .stage { display: grid; gap: 14px; }
+    #preview {
+        width: 100%; max-height: 56vh; background: #000; border-radius: 12px;
+        border: 1px solid var(--line); display: block;
+    }
+    .meta { display: flex; flex-wrap: wrap; gap: 8px; }
+    .meta .pill { font-variant-numeric: tabular-nums; }
+    .fileline { color: var(--muted); font-size: .9rem; overflow-wrap: anywhere; }
+
+    /* ===== Trim UI ===== */
+    .bar {
+        position: relative; height: 54px; border-radius: 10px; background: var(--card-2);
+        border: 1px solid var(--line); overflow: hidden; margin: 4px 0 14px;
+    }
+    .bar .sel {
+        position: absolute; top: 0; bottom: 0;
+        background: color-mix(in srgb, var(--accent) 28%, transparent);
+        border-left: 3px solid var(--accent); border-right: 3px solid var(--accent);
+    }
+    .bar .play { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--accent-2); }
+    .bar .ticks { position: absolute; inset: auto 0 0 0; height: 6px; background: repeating-linear-gradient(90deg, var(--line) 0 1px, transparent 1px 10%); }
+
+    .row { display: grid; gap: 8px 12px; align-items: center; grid-template-columns: 1fr; }
+    @media (min-width: 640px) { .row.two { grid-template-columns: 1fr 1fr; } }
+    .field { display: grid; gap: 6px; }
+    .field label { font-size: .86rem; color: var(--muted); font-weight: 600; letter-spacing: .01em; }
+    .sliderline { display: flex; align-items: center; gap: 10px; }
+    input[type="range"] {
+        flex: 1 1 auto; width: 100%; min-height: 44px; accent-color: var(--accent);
+        background: transparent; margin: 0;
+    }
+    output.time {
+        font-variant-numeric: tabular-nums; min-width: 5.4ch; text-align: right;
+        font-weight: 600; color: var(--text);
+    }
+    .playbar { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+
+    /* ===== Buttons ===== */
+    .btn {
+        appearance: none; border: 1px solid transparent; border-radius: 11px; cursor: pointer;
+        padding: 11px 16px; min-height: 44px; font-weight: 600; font-size: .95rem;
+        display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+        background: var(--card-2); color: var(--text); border-color: var(--line);
+        transition: transform .06s ease, filter .15s ease;
+    }
+    .btn:hover:not(:disabled) { filter: brightness(1.1); }
+    .btn:active:not(:disabled) { transform: translateY(1px); }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+    .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+    .btn.primary:hover:not(:disabled) { filter: brightness(1.06); }
+    .btn.small { padding: 8px 12px; font-size: .88rem; }
+    .btn svg { width: 18px; height: 18px; }
+
+    /* ===== Options ===== */
+    .opts { display: grid; gap: 12px; grid-template-columns: 1fr; margin: 14px 0 0; }
+    @media (min-width: 560px) { .opts { grid-template-columns: 1fr auto; align-items: end; } }
+    .check {
+        display: inline-flex; align-items: center; gap: 10px; cursor: pointer;
+        min-height: 44px; font-size: .95rem;
+    }
+    .check input { width: 24px; height: 24px; accent-color: var(--accent); flex: none; }
+    select {
+        width: 100%; min-height: 44px; padding: 8px 12px; border-radius: 11px;
+        background: var(--card-2); color: var(--text); border: 1px solid var(--line);
+    }
+
+    /* ===== Progress + result ===== */
+    .progress { display: none; gap: 10px; margin-top: 16px; }
+    .progress.on { display: grid; }
+    .track { height: 12px; border-radius: 999px; background: var(--card-2); border: 1px solid var(--line); overflow: hidden; }
+    .track > span { display: block; height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width .18s linear; }
+    .pline { display: flex; justify-content: space-between; gap: 12px; color: var(--muted); font-size: .88rem; font-variant-numeric: tabular-nums; }
+
+    .result { display: none; gap: 12px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
+    .result.on { display: grid; }
+    .result .big { font-size: 1.05rem; font-weight: 700; }
+    .result video { border-radius: 10px; border: 1px solid var(--line); background: #000; max-height: 42vh; }
+    .result .actions { display: flex; flex-wrap: wrap; gap: 10px; }
+
+    .status { display: none; margin-top: 14px; padding: 12px 14px; border-radius: 11px; font-size: .92rem; }
+    .status.on { display: block; }
+    .status.err { background: color-mix(in srgb, var(--bad) 16%, transparent); border: 1px solid var(--bad); }
+    .status.info { background: color-mix(in srgb, var(--accent) 12%, transparent); border: 1px solid var(--line); }
+
+    /* ===== Notes ===== */
+    .notes { color: var(--muted); font-size: .92rem; }
+    .notes h2 { color: var(--text); }
+    .notes ul { margin: 0; padding-left: 1.15em; }
+    .notes li { margin: 6px 0; }
+    .notes b { color: var(--text); }
+    footer.foot { color: var(--muted); font-size: .86rem; padding: 8px 0 0; display: flex; gap: 6px 16px; flex-wrap: wrap; }
+    /* legaturile din subsol stau singure pe rind, deci pot avea inaltimea de atingere deplina;
+       un element inline nu primeste min-height, de aici inline-flex */
+    footer.foot a { color: var(--accent); display: inline-flex; align-items: center; min-height: 44px; }
+
+    .sr-only {
+        position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+        overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+    }
+    :focus-visible { outline: 3px solid var(--accent-2); outline-offset: 2px; border-radius: 8px; }
+    @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
+    }
+</style>
+<style id="tinte-44">
+/* regula casei: pe telefon, tinta de atingere are cel putin 44x44px (WCAG 2.5.5, Apple HIG).
+   Se aplica doar pe pointer gros sau ecran mic, ca sa nu umfle interfata pe desktop.
+   `!important` e intentionat: e un prag de accesibilitate, nu o preferinta de stil. */
+@media (pointer: coarse), (max-width: 700px) {
+  html body :is(button, select, textarea, summary, [role="button"],
+      input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]),
+      label:has(input[type="checkbox"]), label:has(input[type="radio"]),
+      .check, .check-label, .btn, .button) {
+    min-height: 44px !important;
+  }
+  html body :is(button, [role="button"], .btn, .button, .pill) {
+    display: inline-flex !important; align-items: center !important; justify-content: center !important;
+  }
+  html body :is(select) { min-width: 44px !important; }
+  html body :is(input[type="checkbox"], input[type="radio"]) { min-width: 24px !important; min-height: 24px !important; }
+  /* legaturile din afara textului curent (antet, subsol); cele din propozitie ramin legaturi de text */
+  html body a:not(p a):not(li a):not(td a) { min-height: 44px !important; min-width: 44px !important; }
+  html body :is(a.brand, a.skip) { display: inline-flex !important; align-items: center !important; }
+  /* barele care nu incap se asaza pe doua randuri in loc sa iasa din ecran */
+  html body :is(header, footer, nav, .playbar, .actions, .btn-row, .meta, .pill-row, .opts) {
+    flex-wrap: wrap !important;
+  }
+  html body input[type="range"] { height: 44px !important; }
+  html body :is(input[type="file"], img, video, canvas) { max-width: 100% !important; }
+}</style>
+<style id="ecran-mic">
+/* regula casei: nici o latime de ecran nu produce derulare pe orizontala (prag 320px).
+   Aici sint stringerile care nu incap: timpi, nume de fisier lungi, rinduri de butoane. */
+html, body { overflow-x: hidden; }
+.wrap { padding-left: 16px; padding-right: 16px; }
+@media (max-width: 400px) {
+  .card { padding: 14px; }
+  .drop { padding: 20px 14px; }
+  .fileline { word-break: break-word; }
+  .btn { padding: 10px 12px; }
+  .playbar > .btn { flex: 1 1 100%; }
+  output.time { min-width: 5ch; }
+  .result .actions > .btn { flex: 1 1 100%; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="https://freehtml.dev/">
+      <span class="mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v14H4z"/><path d="M4 9h16"/><path d="M9 5v4"/><path d="M15 5v4"/></svg>
+      </span>
+      <span>Video Trimmer</span>
+    </a>
+    <span class="spacer"></span>
+    <button class="ghost" id="themeBtn" type="button" aria-pressed="false">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"/></svg>
+      <span id="themeLabel">Light</span>
+    </button>
+  </header>
+
+  <main>
+    <h1>Cut a video, in your browser</h1>
+    <p class="lede">Pick the start and the end, optionally drop the sound, and save a smaller file. The clip is
+      processed on your own device &mdash; it never goes to a server, there is no account and no upload.</p>
+
+    <ul class="pill-row">
+      <li class="pill"><b>No upload</b></li>
+      <li class="pill"><b>No account</b></li>
+      <li class="pill">Works offline</li>
+      <li class="pill">Apache-2.0</li>
+    </ul>
+
+    <section class="card" aria-labelledby="pickTitle">
+      <h2 id="pickTitle">1. Choose a video</h2>
+      <div class="drop-wrap">
+        <label class="drop" id="drop" for="file">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4"/><path d="m7 9 5-5 5 5"/><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+          <p>Drop a video here, or press to choose one</p>
+          <small>MP4, WebM, MOV, or anything your browser can play. It stays on your device.</small>
+        </label>
+        <input id="file" type="file" accept="video/*">
+      </div>
+      <p class="fileline" id="fileline" hidden></p>
+    </section>
+
+    <section class="card" id="editCard" aria-labelledby="editTitle" hidden>
+      <h2 id="editTitle">2. Set the part you keep</h2>
+      <div class="stage">
+        <video id="preview" playsinline controls preload="metadata"></video>
+        <div class="meta" id="meta"></div>
+
+        <div class="bar" id="bar" aria-hidden="true">
+          <div class="sel" id="sel"></div>
+          <div class="play" id="playhead"></div>
+          <div class="ticks"></div>
+        </div>
+
+        <div class="row two">
+          <div class="field">
+            <label for="start">Start</label>
+            <div class="sliderline">
+              <input id="start" type="range" min="0" max="100" step="0.01" value="0">
+              <output class="time" id="startOut" for="start">0:00.0</output>
+            </div>
+          </div>
+          <div class="field">
+            <label for="end">End</label>
+            <div class="sliderline">
+              <input id="end" type="range" min="0" max="100" step="0.01" value="100">
+              <output class="time" id="endOut" for="end">0:00.0</output>
+            </div>
+          </div>
+        </div>
+
+        <div class="playbar">
+          <button class="btn small" id="playBtn" type="button">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+            Play
+          </button>
+          <button class="btn small" id="setStart" type="button">Start here</button>
+          <button class="btn small" id="setEnd" type="button">End here</button>
+          <button class="btn small" id="resetRange" type="button">Whole video</button>
+          <button class="btn small" id="snapBtn" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3.2"/><path d="M8 6l1.5-2h5L16 6"/></svg>
+            Save this frame
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" id="outCard" aria-labelledby="outTitle" hidden>
+      <h2 id="outTitle">3. Save it</h2>
+      <div class="opts">
+        <label class="check" for="mute">
+          <input id="mute" type="checkbox">
+          <span>Remove the sound</span>
+        </label>
+        <div class="field">
+          <label for="quality">Size and quality</label>
+          <select id="quality">
+            <option value="high">High &mdash; larger file</option>
+            <option value="balanced" selected>Balanced</option>
+            <option value="small">Small &mdash; for sharing</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="playbar" style="margin-top:16px">
+        <button class="btn primary" id="exportBtn" type="button" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M4 19h16"/></svg>
+          <span id="exportLabel">Cut and save</span>
+        </button>
+        <button class="btn" id="cancelBtn" type="button" hidden>Cancel</button>
+      </div>
+
+      <div class="progress" id="progress">
+        <div class="track"><span id="pbar"></span></div>
+        <div class="pline"><span id="pstate">Working&hellip;</span><span id="ppct">0%</span></div>
+      </div>
+
+      <div class="result" id="result">
+        <div>
+          <div class="big" id="rName">clip</div>
+          <div class="pline" id="rMeta"></div>
+        </div>
+        <video id="rPreview" controls playsinline></video>
+        <div class="actions">
+          <a class="btn primary" id="download" download href="#">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M4 19h16"/></svg>
+            Download
+          </a>
+          <button class="btn" id="againBtn" type="button">Trim again</button>
+        </div>
+      </div>
+
+      <p class="status" id="status" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="card notes" aria-labelledby="howTitle">
+      <h2 id="howTitle">How it works, and what to expect</h2>
+      <ul>
+        <li><b>Your file never leaves the device.</b> There is no server: the video is decoded and re-encoded by
+          this page inside your browser. You can unplug the network after the page has loaded.</li>
+        <li><b>The cut plays once while it is saved.</b> A browser cannot copy a piece of a compressed video
+          without re-encoding it, so the tool plays the part you kept and records it again. A 30-second clip
+          takes about 30 seconds. You will not hear it while it records.</li>
+        <li><b>What comes out:</b> <span id="fmtNote">WebM (VP9 video, Opus audio)</span>, the same picture size
+          as the original, without the frames outside your range.</li>
+        <li><b>What it does not do:</b> joining several clips, adding titles, or changing the resolution.
+          For that you need a real editor.</li>
+        <li><b>Save this frame</b> writes a PNG of the current picture, with no re-encoding at all &mdash; useful
+          for thumbnails.</li>
+      </ul>
+    </section>
+
+    <footer class="foot">
+      <span>Part of <a href="https://freehtml.dev/">freehtml.dev</a> &mdash; free tools that run in your browser.</span>
+      <span>Apache-2.0. No tracking, no cookies.</span>
+    </footer>
+  </main>
+</div>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Video Trimmer","url":"https://tekideki.github.io/Video-Trim/","applicationCategory":"MultimediaApplication","operatingSystem":"Any (web browser)","browserRequirements":"Requires JavaScript and MediaRecorder support","description":"Cut and trim a video in the browser without uploading it: choose the start and end point, optionally remove the audio, export a smaller file. All processing happens on the device.","inLanguage":["en"],"isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"},"license":"https://www.apache.org/licenses/LICENSE-2.0"}
+</script>
+
+<script>
+(function () {
+  'use strict';
+
+  // ---------- elemente ----------
+  var $ = function (id) { return document.getElementById(id); };
+  var drop = $('drop'), fileInput = $('file'), fileline = $('fileline');
+  var editCard = $('editCard'), outCard = $('outCard');
+  var video = $('preview'), metaBox = $('meta');
+  var bar = $('bar'), sel = $('sel'), playhead = $('playhead');
+  var startRange = $('start'), endRange = $('end');
+  var startOut = $('startOut'), endOut = $('endOut');
+  var playBtn = $('playBtn'), setStart = $('setStart'), setEnd = $('setEnd');
+  var resetRange = $('resetRange'), snapBtn = $('snapBtn');
+  var muteBox = $('mute'), qualitySel = $('quality');
+  var exportBtn = $('exportBtn'), exportLabel = $('exportLabel'), cancelBtn = $('cancelBtn');
+  var progress = $('progress'), pbar = $('pbar'), pct = $('ppct'), pstate = $('pstate');
+  var result = $('result'), rName = $('rName'), rMeta = $('rMeta'), rPreview = $('rPreview');
+  var download = $('download'), againBtn = $('againBtn'), statusBox = $('status');
+  var fmtNote = $('fmtNote'), themeBtn = $('themeBtn'), themeLabel = $('themeLabel');
+
+  // ---------- stare ----------
+  var state = {
+    file: null, url: null, duration: 0,
+    start: 0, end: 0, playing: false,
+    busy: false, recorder: null, cancelled: false,
+    audioCtx: null, audioSrc: null, audioDest: null, audioToSpeakers: null,
+    resultUrl: null
+  };
+
+  // ---------- utilitare ----------
+  function fmt(t) {
+    if (!isFinite(t) || t < 0) t = 0;
+    var m = Math.floor(t / 60), s = t - m * 60;
+    return m + ':' + (s < 10 ? '0' : '') + s.toFixed(1);
+  }
+  function fmtBytes(n) {
+    if (!isFinite(n)) return '?';
+    if (n < 1024) return n + ' B';
+    if (n < 1024 * 1024) return (n / 1024).toFixed(0) + ' KB';
+    return (n / 1024 / 1024).toFixed(n < 10 * 1024 * 1024 ? 1 : 0) + ' MB';
+  }
+  function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+
+  // Unele fisiere WebM ies din MediaRecorder fara durata in antet, deci elementul <video>
+  // raporteaza Infinity. Trucul obisnuit: un salt foarte departe, apoi inapoi la zero.
+  function fixDuration(el) {
+    el.addEventListener('loadedmetadata', function once() {
+      el.removeEventListener('loadedmetadata', once);
+      if (el.duration !== Infinity) return;
+      var back = function () {
+        el.removeEventListener('timeupdate', back);
+        el.currentTime = 0;
+      };
+      el.addEventListener('timeupdate', back);
+      el.currentTime = 1e7;
+    });
+  }
+  fixDuration(video);
+  fixDuration(rPreview);
+
+  function say(msg, kind) {
+    if (!msg) { statusBox.className = 'status'; statusBox.textContent = ''; return; }
+    statusBox.className = 'status on ' + (kind || 'info');
+    statusBox.textContent = msg;
+  }
+
+  // ---------- ce poate browserul ----------
+  var CANDIDATES = [
+    ['video/webm;codecs=vp9,opus', 'WebM (VP9 video, Opus audio)'],
+    ['video/webm;codecs=vp8,opus', 'WebM (VP8 video, Opus audio)'],
+    ['video/webm', 'WebM'],
+    ['video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'MP4 (H.264 video, AAC audio)'],
+    ['video/mp4', 'MP4']
+  ];
+  var chosen = null;
+  (function pickFormat() {
+    if (typeof MediaRecorder === 'undefined') { say('This browser cannot record video (MediaRecorder is missing). Try Chrome, Edge, Firefox or Safari 14.1 or newer.', 'err'); return; }
+    for (var i = 0; i < CANDIDATES.length; i++) {
+      try { if (MediaRecorder.isTypeSupported(CANDIDATES[i][0])) { chosen = CANDIDATES[i]; break; } } catch (e) {}
+    }
+    if (!chosen) { say('This browser reports no usable recording format.', 'err'); return; }
+    fmtNote.textContent = chosen[1];
+  })();
+
+  function extension() { return chosen && chosen[0].indexOf('mp4') > -1 ? 'mp4' : 'webm'; }
+
+  // ---------- tema ----------
+  function applyTheme(light) {
+    document.documentElement.classList.toggle('theme-light', light);
+    document.documentElement.classList.toggle('theme-dark', !light);
+    themeBtn.setAttribute('aria-pressed', light ? 'true' : 'false');
+    themeLabel.textContent = light ? 'Dark' : 'Light';
+    var m = document.querySelector('meta[name="theme-color"]');
+    if (m) m.setAttribute('content', light ? '#f4f7fb' : '#0b1220');
+    try { localStorage.setItem('video-trim-theme', light ? 'light' : 'dark'); } catch (e) {}
+  }
+  (function initTheme() {
+    var saved = null;
+    try { saved = localStorage.getItem('video-trim-theme'); } catch (e) {}
+    var prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+    applyTheme(saved ? saved === 'light' : prefersLight);
+  })();
+  themeBtn.addEventListener('click', function () {
+    applyTheme(!document.documentElement.classList.contains('theme-light'));
+  });
+
+  // ---------- alegerea fisierului ----------
+  ['dragenter', 'dragover'].forEach(function (ev) {
+    drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.add('is-over'); });
+  });
+  ['dragleave', 'drop'].forEach(function (ev) {
+    drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.remove('is-over'); });
+  });
+  drop.addEventListener('drop', function (e) {
+    var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    if (f) loadFile(f);
+  });
+  fileInput.addEventListener('change', function () {
+    if (fileInput.files && fileInput.files[0]) loadFile(fileInput.files[0]);
+  });
+
+  function loadFile(f) {
+    if (!/^video\//.test(f.type) && !/\.(mp4|webm|mov|m4v|mkv|ogv)$/i.test(f.name)) {
+      say('That does not look like a video file. Pick an MP4, WebM or MOV.', 'err');
+      return;
+    }
+    resetAll();
+    state.file = f;
+    state.url = URL.createObjectURL(f);
+    video.src = state.url;
+    video.load();
+    fileline.hidden = false;
+    fileline.textContent = f.name + ' · ' + fmtBytes(f.size);
+    say('');
+    editCard.hidden = false;
+    outCard.hidden = false;
+  }
+
+  video.addEventListener('loadedmetadata', function () {
+    var d = video.duration;
+    if (!isFinite(d) || d <= 0) {
+      // Unele fisiere WebM raporteaza durata doar dupa un seek.
+      video.currentTime = 1e6;
+      return;
+    }
+    state.duration = d;
+    state.start = 0;
+    state.end = d;
+    startRange.min = endRange.min = 0;
+    startRange.max = endRange.max = d.toFixed(2);
+    startRange.step = endRange.step = (d / 1000).toFixed(3);
+    startRange.value = 0;
+    endRange.value = d.toFixed(2);
+    renderMeta();
+    syncRange();
+    exportBtn.disabled = false;
+  });
+
+  video.addEventListener('durationchange', function () {
+    if ((!isFinite(state.duration) || state.duration <= 0) && isFinite(video.duration) && video.duration > 0) {
+      video.currentTime = 0;
+      var ev = new Event('loadedmetadata');
+      video.dispatchEvent(ev);
+    }
+  });
+
+  function renderMeta() {
+    var parts = [];
+    parts.push('<span class="pill"><b>' + fmt(state.duration) + '</b> long</span>');
+    if (video.videoWidth) parts.push('<span class="pill"><b>' + video.videoWidth + '×' + video.videoHeight + '</b></span>');
+    if (state.file) parts.push('<span class="pill"><b>' + fmtBytes(state.file.size) + '</b> original</span>');
+    parts.push('<span class="pill">' + (chosen ? chosen[1] : 'format unknown') + '</span>');
+    metaBox.innerHTML = parts.join('');
+  }
+
+  // ---------- intervalul ----------
+  function syncRange() {
+    if (state.end <= state.start) state.end = Math.min(state.duration, state.start + 0.1);
+    startRange.value = state.start;
+    endRange.value = state.end;
+    startOut.textContent = fmt(state.start);
+    endOut.textContent = fmt(state.end);
+    var d = state.duration || 1;
+    sel.style.left = (state.start / d * 100) + '%';
+    sel.style.width = Math.max(0, (state.end - state.start) / d * 100) + '%';
+    positionPlayhead();
+    var len = state.end - state.start;
+    exportLabel.textContent = 'Cut and save ' + fmt(len).replace(/^0:/, '') ;
+    exportBtn.disabled = state.busy || len <= 0;
+  }
+  function positionPlayhead() {
+    var d = state.duration || 1;
+    playhead.style.left = clamp(video.currentTime / d * 100, 0, 100) + '%';
+  }
+  video.addEventListener('timeupdate', positionPlayhead);
+
+  startRange.addEventListener('input', function () {
+    state.start = clamp(parseFloat(startRange.value) || 0, 0, state.end - 0.05);
+    syncRange();
+  });
+  endRange.addEventListener('input', function () {
+    state.end = clamp(parseFloat(endRange.value) || 0, state.start + 0.05, state.duration);
+    syncRange();
+  });
+  setStart.addEventListener('click', function () {
+    state.start = clamp(video.currentTime, 0, state.end - 0.05);
+    syncRange();
+  });
+  setEnd.addEventListener('click', function () {
+    state.end = clamp(video.currentTime, state.start + 0.05, state.duration);
+    syncRange();
+  });
+  resetRange.addEventListener('click', function () {
+    state.start = 0; state.end = state.duration; syncRange();
+  });
+
+  playBtn.addEventListener('click', function () {
+    if (video.paused) {
+      if (video.currentTime < state.start || video.currentTime >= state.end) video.currentTime = state.start;
+      ensureAudioGraph();
+      resumeAudio();
+      video.play().catch(function () {});
+    } else {
+      video.pause();
+    }
+  });
+  video.addEventListener('play', function () {
+    playBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="7" y="5" width="3.5" height="14" rx="1"/><rect x="13.5" y="5" width="3.5" height="14" rx="1"/></svg> Pause';
+    ensureAudioGraph(); resumeAudio();
+  });
+  video.addEventListener('pause', function () {
+    playBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg> Play';
+  });
+
+  // ---------- sunetul: elementul nu se aude, decit cind vrem ----------
+  // Un <video> mincat de WebAudio nu se mai aude pe difuzoare decit daca legam sursa la iesire.
+  // Asa putem inregistra sunetul fara sa-l auzi, si putem scoate sunetul din export.
+  function ensureAudioGraph() {
+    if (state.audioCtx || !window.AudioContext) return;
+    try {
+      var Ctx = window.AudioContext || window.webkitAudioContext;
+      state.audioCtx = new Ctx();
+      state.audioSrc = state.audioCtx.createMediaElementSource(video);
+      state.audioDest = state.audioCtx.createMediaStreamDestination();
+      state.audioToSpeakers = state.audioCtx.createGain();
+      state.audioSrc.connect(state.audioDest);
+      state.audioSrc.connect(state.audioToSpeakers);
+      state.audioToSpeakers.connect(state.audioCtx.destination);
+    } catch (e) {
+      state.audioCtx = null;
+    }
+  }
+  function resumeAudio() {
+    if (state.audioCtx && state.audioCtx.state === 'suspended') state.audioCtx.resume().catch(function () {});
+  }
+  function speakers(on) {
+    if (state.audioToSpeakers) state.audioToSpeakers.gain.value = on ? 1 : 0;
+  }
+
+  // ---------- captura ----------
+  function videoCaptureStream() {
+    if (video.captureStream) return video.captureStream();
+    if (video.mozCaptureStream) return video.mozCaptureStream();
+    return null;
+  }
+
+  // Fallback pentru browserele fara captureStream pe <video> (Safari): desenam intr-un canvas.
+  function canvasCaptureStream() {
+    var c = document.createElement('canvas');
+    c.width = video.videoWidth || 640;
+    c.height = video.videoHeight || 360;
+    var ctx = c.getContext('2d');
+    var stream = c.captureStream ? c.captureStream(30) : null;
+    if (!stream) return null;
+    var running = true;
+    (function draw() {
+      if (!running) return;
+      try { ctx.drawImage(video, 0, 0, c.width, c.height); } catch (e) {}
+      requestAnimationFrame(draw);
+    })();
+    stream._stopDrawing = function () { running = false; };
+    return stream;
+  }
+
+  function bitrate() {
+    var q = qualitySel.value;
+    if (q === 'high') return 8000000;
+    if (q === 'small') return 1200000;
+    return 3500000;
+  }
+
+  // ---------- export ----------
+  exportBtn.addEventListener('click', function () { startExport(); });
+  cancelBtn.addEventListener('click', function () {
+    state.cancelled = true;
+    if (state.recorder && state.recorder.state !== 'inactive') state.recorder.stop();
+  });
+  againBtn.addEventListener('click', function () {
+    result.className = 'result';
+    if (state.resultUrl) { URL.revokeObjectURL(state.resultUrl); state.resultUrl = null; }
+    say('');
+    syncRange();
+  });
+
+  function setBusy(on) {
+    state.busy = on;
+    exportBtn.disabled = on;
+    cancelBtn.hidden = !on;
+    startRange.disabled = endRange.disabled = on;
+    setStart.disabled = setEnd.disabled = resetRange.disabled = playBtn.disabled = on;
+    muteBox.disabled = qualitySel.disabled = snapBtn.disabled = on;
+    progress.className = on ? 'progress on' : 'progress';
+  }
+
+  function startExport() {
+    if (state.busy || !state.file) return;
+    if (!chosen) { say('This browser cannot record video.', 'err'); return; }
+    var start = state.start, end = state.end;
+    if (end - start < 0.1) { say('The kept part is shorter than a tenth of a second. Move the end further.', 'err'); return; }
+
+    state.cancelled = false;
+    say('');
+    result.className = 'result';
+    setBusy(true);
+    pbar.style.width = '0%';
+    pct.textContent = '0%';
+    pstate.textContent = 'Getting the video ready…';
+
+    ensureAudioGraph();
+    var stream = videoCaptureStream();
+    var drawn = null;
+    if (!stream) {
+      drawn = canvasCaptureStream();
+      stream = drawn;
+      if (!stream) { setBusy(false); say('This browser cannot capture a video. Try Chrome, Edge or Firefox.', 'err'); return; }
+      say('This browser cannot capture the sound of a video, so the clip will be silent.', 'info');
+    }
+
+    var tracks = stream.getVideoTracks().slice(0, 1);
+    var wantAudio = !muteBox.checked && state.audioDest && state.audioDest.stream.getAudioTracks().length;
+    if (wantAudio) tracks = tracks.concat(state.audioDest.stream.getAudioTracks());
+
+    var mixed = new MediaStream(tracks);
+    var chunks = [];
+    var rec;
+    try {
+      rec = new MediaRecorder(mixed, {
+        mimeType: chosen[0],
+        videoBitsPerSecond: bitrate(),
+        audioBitsPerSecond: 128000
+      });
+    } catch (e) {
+      setBusy(false); say('The browser refused to start recording: ' + e.message, 'err');
+      stopStream(drawn, stream); return;
+    }
+    state.recorder = rec;
+    rec.addEventListener('dataavailable', function (e) { if (e.data && e.data.size) chunks.push(e.data); });
+
+    rec.addEventListener('stop', function () {
+      var stoppedAt = video.currentTime;
+      video.pause();
+      speakers(true);
+      stopStream(drawn, stream);
+      setBusy(false);
+      if (state.cancelled) { say('Cancelled. Nothing was saved.', 'info'); return; }
+      var blob = new Blob(chunks, { type: chosen[0].split(';')[0] });
+      if (!blob.size) { say('Nothing was recorded. Try again, or pick another format.', 'err'); return; }
+      showResult(blob, start, stoppedAt);
+    });
+
+    speakers(false); // in timpul inregistrarii nu se aude nimic
+    video.pause();
+    pstate.textContent = 'Rewinding to the start point…';
+
+    var seekTarget = start;
+    var onSeeked = function () {
+      video.removeEventListener('seeked', onSeeked);
+      try { rec.start(250); } catch (e) { setBusy(false); say('Could not start recording: ' + e.message, 'err'); return; }
+      pstate.textContent = 'Saving the kept part — it plays once…';
+      video.play().catch(function () {});
+      tick();
+    };
+    video.addEventListener('seeked', onSeeked);
+    video.currentTime = seekTarget;
+
+    function tick() {
+      if (rec.state === 'inactive') return;
+      var t = video.currentTime;
+      var p = clamp((t - start) / (end - start), 0, 1);
+      var percent = Math.round(p * 100);
+      pbar.style.width = percent + '%';
+      pct.textContent = percent + '%';
+      if (t >= end || video.ended) {
+        try { rec.stop(); } catch (e) {}
+        return;
+      }
+      requestAnimationFrame(tick);
+    }
+  }
+
+  function stopStream(drawn, stream) {
+    if (drawn && drawn._stopDrawing) drawn._stopDrawing();
+    try { stream.getTracks().forEach(function (t) { if (t.stop) t.stop(); }); } catch (e) {}
+  }
+
+  function showResult(blob, start, stoppedAt) {
+    if (state.resultUrl) URL.revokeObjectURL(state.resultUrl);
+    state.resultUrl = URL.createObjectURL(blob);
+    var ext = extension();
+    var base = (state.file ? state.file.name : 'video').replace(/\.[^.]+$/, '').replace(/[^\w\-]+/g, '-').slice(0, 40);
+    var name = base + '-' + fmt(start).replace(/[:.]/g, '') + '-' + fmt(stoppedAt).replace(/[:.]/g, '') + '.' + ext;
+    download.href = state.resultUrl;
+    download.setAttribute('download', name);
+    rName.textContent = name;
+    rPreview.src = state.resultUrl;
+    rMeta.innerHTML = '<span>' + fmtBytes(blob.size) + '</span><span>·</span><span>' + fmt(stoppedAt - start) + ' long</span><span>·</span><span>' + chosen[1] + '</span>';
+    result.className = 'result on';
+    pstate.textContent = 'Done.';
+    pct.textContent = '100%';
+    pbar.style.width = '100%';
+    say('Saved. Check the clip below, then download it.', 'info');
+    result.scrollIntoView({ block: 'nearest' });
+  }
+
+  // ---------- cadru ca PNG ----------
+  snapBtn.addEventListener('click', function () {
+    if (!state.file) return;
+    var c = document.createElement('canvas');
+    c.width = video.videoWidth || 640;
+    c.height = video.videoHeight || 360;
+    c.getContext('2d').drawImage(video, 0, 0, c.width, c.height);
+    c.toBlob(function (blob) {
+      if (!blob) { say('Could not read the frame.', 'err'); return; }
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = (state.file.name.replace(/\.[^.]+$/, '') || 'frame') + '-' + fmt(video.currentTime).replace(/[:.]/g, '') + '.png';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+      say('Frame saved as a PNG at ' + fmt(video.currentTime) + '.', 'info');
+    }, 'image/png');
+  });
+
+  // ---------- reset ----------
+  function resetAll() {
+    if (state.url) { URL.revokeObjectURL(state.url); state.url = null; }
+    if (state.resultUrl) { URL.revokeObjectURL(state.resultUrl); state.resultUrl = null; }
+    state.duration = 0; state.start = 0; state.end = 0;
+    state.file = null;
+    result.className = 'result';
+    say('');
+    metaBox.innerHTML = '';
+  }
+
+  // ---------- service worker (offline) ----------
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('service-worker.js').catch(function () {});
+    });
+  }
+
+  // Space = play/pause, dar nu cind scriem intr-un cimp
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== ' ' || e.target.closest('input, select, textarea, button, a, video')) return;
+    if (!state.file) return;
+    e.preventDefault();
+    playBtn.click();
+  });
+})();
+</script>
+</body></html>
