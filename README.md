@@ -53,3 +53,11 @@ horizontal scroll at 320px, and every tap target at least 44×44 px on a touch s
 ## Licence
 
 Apache-2.0. See `LICENSE` and `NOTICE`.
+
+## Poze
+
+- `docs/preview-desktop.png` — pagina cu un clip încărcat, selecție 0:00.8 - 0:03.2
+- `docs/preview-mobile.png` — același lucru la 390px
+- `docs/hub-card.png` — cardul din hub-ul freehtml.dev
+
+Uneltele din listă: [freehtml.dev](https://freehtml.dev/) · scurtătură: `freehtml.dev/trim/`.
