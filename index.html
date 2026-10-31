@@ -240,6 +240,9 @@
     /* legaturile din subsol stau singure pe rind, deci pot avea inaltimea de atingere deplina;
        un element inline nu primeste min-height, de aici inline-flex */
     footer.foot a { color: var(--accent); display: inline-flex; align-items: center; min-height: 44px; }
+    /* linia de sprijin, ca la jocuri: o propozitie si un buton, nu un cuvant ratacit */
+    footer.foot .support { display: flex; align-items: center; gap: 4px 12px; flex-wrap: wrap; width: 100%; }
+    footer.foot .support .btn { color: var(--text); text-decoration: none; }
 
     .sr-only {
         position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
@@ -452,7 +455,10 @@ html, body { overflow-x: hidden; }
     <footer class="foot">
       <span data-i18n-html="foot.part">Part of <a href="https://freehtml.dev/">freehtml.dev</a> &mdash; free tools that run in your browser.</span>
       <span data-i18n="foot.license">Apache-2.0. No tracking, no cookies.</span>
-      <span><a href="https://PayPal.me/TekiDeki" target="_blank" rel="noopener noreferrer" data-i18n="foot.support">Support</a></span>
+      <div class="support">
+        <span data-i18n="foot.free">The tool is free.</span>
+        <a class="btn small" id="supportLink" href="https://PayPal.me/TekiDeki" target="_blank" rel="noopener">❤️ <span data-i18n="foot.support">Support the work</span></a>
+      </div>
     </footer>
   </main>
 </div>
@@ -495,7 +501,8 @@ var I18N = {
   "fmt.webm": "WebM",
   "foot.license": "Apache-2.0. No tracking, no cookies.",
   "foot.part": "Part of <a href=\"https://freehtml.dev/\">freehtml.dev</a> — free tools that run in your browser.",
-  "foot.support": "Support",
+  "foot.free": "The tool is free.",
+  "foot.support": "Support the work",
   "h1": "Cut a video, in your browser",
   "info.cancelled": "Cancelled. Nothing was saved.",
   "info.frame": "Frame saved as a PNG at {t}.",
@@ -563,7 +570,8 @@ var I18N = {
   "fmt.webm": "WebM",
   "foot.license": "Apache-2.0. Fără urmărire, fără cookie-uri.",
   "foot.part": "Parte din <a href=\"https://freehtml.dev/\">freehtml.dev</a> — unelte gratuite care rulează în browserul tău.",
-  "foot.support": "Susține",
+  "foot.free": "Unealta e gratuită.",
+  "foot.support": "Susține munca",
   "h1": "Taie un video, în browser",
   "info.cancelled": "Anulat. Nu s-a salvat nimic.",
   "info.frame": "Cadru salvat ca PNG la {t}.",
@@ -631,7 +639,8 @@ var I18N = {
   "fmt.webm": "WebM",
   "foot.license": "Apache-2.0. Bez praćenja, bez kolačića.",
   "foot.part": "Deo sajta <a href=\"https://freehtml.dev/\">freehtml.dev</a> — besplatne alatke koje rade u tvom pregledaču.",
-  "foot.support": "Podrži",
+  "foot.free": "Alatka je besplatna.",
+  "foot.support": "Podrži rad",
   "h1": "Iseci video u pregledaču",
   "info.cancelled": "Otkazano. Ništa nije sačuvano.",
   "info.frame": "Kadar sačuvan kao PNG na {t}.",
@@ -699,7 +708,8 @@ var I18N = {
   "fmt.webm": "WebM",
   "foot.license": "Apache-2.0. Без праћења, без колачића.",
   "foot.part": "Део сајта <a href=\"https://freehtml.dev/\">freehtml.dev</a> — бесплатне алатке које раде у твом прегледачу.",
-  "foot.support": "Подржи",
+  "foot.free": "Алатка је бесплатна.",
+  "foot.support": "Подржи рад",
   "h1": "Исеци видео у прегледачу",
   "info.cancelled": "Отказано. Ништа није сачувано.",
   "info.frame": "Кадар сачуван као PNG на {t}.",

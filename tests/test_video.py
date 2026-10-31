@@ -303,11 +303,22 @@ def main():
               "prima vizita e in engleza, nu dupa limba browserului")
         check(pg.eval_on_selector("#langSel", "e => e.value") == "en", "comutatorul arata engleza")
 
-        # linia de sprijin, regula casei
-        sprijin = pg.eval_on_selector_all('footer a[href*="paypal.me" i]', "els => els.map(e => e.href)")
-        check(len(sprijin) == 1 and "paypal.me/tekideki" in sprijin[0].lower(),
-              "subsolul are linia de sprijin catre PayPal.me/TekiDeki", sprijin)
+        # butonul de sprijin, regula casei: buton adevarat, cu inima si propozitie intreaga
+        btn = pg.eval_on_selector("#supportLink", """e => {
+          const r = e.getBoundingClientRect();
+          return { href: e.href, target: e.target, rel: e.rel, text: e.innerText.trim(),
+                   h: Math.round(r.height), w: Math.round(r.width) };
+        }""")
+        check(btn["href"].lower() == "https://paypal.me/tekideki", "butonul de sprijin duce la PayPal.me/TekiDeki", btn["href"])
+        check(btn["target"] == "_blank" and "noopener" in btn["rel"], "se deschide in fila noua, cu noopener", btn["rel"])
+        check("\u2764" in btn["text"] and len(btn["text"].split()) >= 3,
+              "butonul are inima si o propozitie, nu un singur cuvint", btn["text"])
+        check(btn["h"] >= 44 and btn["w"] >= 44, "butonul de sprijin e o tinta de 44px", "%dx%d" % (btn["w"], btn["h"]))
+        check(pg.inner_text(".support").find(pg.inner_text("#supportLink")) == 0 or
+              len(pg.inner_text(".support")) > len(btn["text"]),
+              "linga buton scrie ca unealta e gratuita", pg.inner_text(".support").replace("\n", " ")[:60])
 
+        etichete = {}
         INTERZISE = "\u0451\u044a\u044b\u044d\u044e\u044f"   # litere rusesti, interzise in sarba
         LIMBI = [("ro", "ro"), ("sr", "sr"), ("src", "sr-Cyrl"), ("en", "en")]
         texte = {}
@@ -330,6 +341,7 @@ def main():
             check(desc and og and titlu.lower().find("video") >= 0,
                   "%s: titlu, descriere si og:description sunt scrise" % cod, titlu[:50])
             check(butoane.strip() != "", "%s: butoanele au text" % cod, butoane)
+            etichete[cod] = (pg.inner_text("#supportLink"), pg.eval_on_selector(".support span", "e => e.innerText"))
             if cod in ("sr", "src"):
                 gasite = sorted({c for c in (h1 + lede + desc + butoane) if c in INTERZISE})
                 check(not gasite, "%s: fara litere rusesti" % cod, gasite)
@@ -337,6 +349,10 @@ def main():
             check(pg.evaluate("() => document.documentElement.scrollWidth - window.innerWidth") <= 1,
                   "%s: 390px fara derulare pe orizontala" % cod)
 
+        check(len({v[0] for v in etichete.values()}) == 4,
+              "butonul de sprijin e tradus in toate cele patru limbi", [v[0] for v in etichete.values()])
+        check(all(len(v[1]) > 5 for v in etichete.values()), "si propozitia de linga el e tradusa",
+              [v[1] for v in etichete.values()])
         check(len({v[0] for v in texte.values()}) == 4, "cele patru titluri mari sunt diferite",
               [v[0] for v in texte.values()])
         check(texte["en"][0] != texte["ro"][0] and "video" in texte["en"][0].lower(),
