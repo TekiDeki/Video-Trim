@@ -213,6 +213,8 @@ def main():
               str(out_path.stat().st_size) + " B")
         check(out_path.read_bytes()[:4] == b"\x1a\x45\xdf\xa3", "fisierul descarcat e un container valid (WebM)",
               out_path.read_bytes()[:8].hex())
+        # sunetul se vede in antetul containerului: pista Opus e anuntata prin CodecID
+        check(b"A_OPUS" in out_path.read_bytes(), "exportul cu sunet are pista audio (Opus)")
         check(page.evaluate("() => document.querySelector('video').paused"), "redarea s-a oprit la sfirsit")
 
         # ---------------- 5. sunetul scos
@@ -226,8 +228,8 @@ def main():
             page.click("#download")
         dl2.value.save_as(str(out2))
         check(out2.stat().st_size > 15000, "exportul fara sunet are continut", str(out2.stat().st_size) + " B")
-        check(out2.stat().st_size < out_path.stat().st_size, "fara sunet fisierul e mai mic",
-              str(out2.stat().st_size) + " < " + str(out_path.stat().st_size))
+        check(b"A_OPUS" not in out2.read_bytes(), "exportul fara sunet nu are pista audio",
+              str(out2.stat().st_size) + " B")
         info2 = page.evaluate("() => document.getElementById('download').getAttribute('download')")
         check(info2.endswith(".webm") or info2.endswith(".mp4"), "si exportul mut are extensie", info2)
         check(len(console_errors) == 0, "nici o eroare de consola dupa doua exporturi", console_errors[:2])
