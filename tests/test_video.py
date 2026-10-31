@@ -13,7 +13,9 @@ Ce verifica, in ordinea in care se intimpla un utilizator:
   7. "Save this frame" descarca un PNG;
   8. la 320px nu exista derulare pe orizontala, iar pe pointer gros fiecare tinta
      de atingere are cel putin 44x44px (regula casei, WCAG 2.5.5);
-  9. cele patru limbi (en, ro, sr latina, sr chirilica): titlu, h1, descriere, JSON-LD,
+  9. subsolul: linkul din propozitie ramine legatura de text (nu chenar de 44px), iar
+     licenta si propozitia stau pe aceeasi linie, fara salt;
+  10. cele patru limbi (en, ro, sr latina, sr chirilica): titlu, h1, descriere, JSON-LD,
      <html lang>, linia de sprijin, memorarea alegerii si faptul ca nici o limba nu
      rupe asezarea la 320px.
 
@@ -287,8 +289,55 @@ def main():
             check(len(errs) == 0, "%dpx: fara erori de consola" % width, errs[:2])
             ctx2.close()
 
-        # ---------------- 8. limbile
-        print("\n8. Cele patru limbi")
+        # ---------------- 8. subsolul: text pe o linie, fara salt
+        print("\n8. Subsolul: propozitia, licenta si butonul pe linia lor")
+        # De ce exista: `.foot a { min-height:44px }` prindea si linkul din mijlocul propozitiei
+        # "Part of freehtml.dev - free tools...". Un inline-flex de 44px intr-un rind de 21px
+        # ridica linia de baza a rindului, iar textul de alaturi ("Apache-2.0. No tracking...")
+        # aparea cu ~12px mai sus, adica dezaliniat cu un rind. Masurat pe 31.10.2026.
+        for lat, eticheta in ((1280, "desktop"), (390, "telefon")):
+            ctxf = browser.new_context(viewport={"width": lat, "height": 844},
+                                       has_touch=(lat < 700), is_mobile=(lat < 700),
+                                       device_scale_factor=2 if lat < 700 else 1)
+            pgf = ctxf.new_page()
+            pgf.goto(url, wait_until="load")
+            pgf.wait_for_timeout(200)
+            date = pgf.evaluate("""() => {
+              const f = document.querySelector('footer.foot');
+              const part = f.querySelector('.foot-text');
+              const lic = f.querySelectorAll(':scope > span')[1];
+              const a = part.querySelector('a');
+              const primulRind = el => { const r = document.createRange(); r.selectNodeContents(el);
+                                         const q = r.getClientRects()[0];
+                                         return {top: q.top, bottom: q.bottom}; };
+              const ar = a.getBoundingClientRect();
+              return {
+                linkH: ar.height, linkW: ar.width,
+                partTop: primulRind(part).top, licTop: primulRind(lic).top,
+                partBox: part.getBoundingClientRect().toJSON(),
+                licBox: lic.getBoundingClientRect().toJSON(),
+                afisare: getComputedStyle(a).display,
+                href: a.getAttribute('href')
+              };
+            }""")
+            check(date["href"] == "https://freehtml.dev/", eticheta + ": linkul din propozitie duce la freehtml.dev", date["href"])
+            check(date["afisare"] == "inline", eticheta + ": linkul din propozitie e legatura de text, nu chenar",
+                  date["afisare"])
+            check(date["linkH"] <= 26, eticheta + ": linkul din propozitie nu umfla rindul",
+                  "%.0fx%.0fpx" % (date["linkW"], date["linkH"]))
+            if lat >= 700:
+                diferenta = abs(date["partTop"] - date["licTop"])
+                check(diferenta <= 2, "desktop: licenta sta pe aceeasi linie cu propozitia",
+                      "diferenta %.1fpx" % diferenta)
+            # cele doua blocuri de text nu se suprapun, oricit de ingust ar fi ecranul
+            pv, lv = date["partBox"], date["licBox"]
+            suprapus = not (pv["bottom"] <= lv["top"] + 1 or lv["bottom"] <= pv["top"] + 1 or
+                            pv["right"] <= lv["left"] + 1 or lv["right"] <= pv["left"] + 1)
+            check(not suprapus, eticheta + ": propozitia si licenta nu se suprapun")
+            ctxf.close()
+
+        # ---------------- 9. limbile
+        print("\n9. Cele patru limbi")
         ctx3 = browser.new_context(viewport={"width": 390, "height": 844}, has_touch=True,
                                    device_scale_factor=2, is_mobile=True)
         pg = ctx3.new_page()
