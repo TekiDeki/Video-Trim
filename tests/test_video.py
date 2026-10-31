@@ -309,7 +309,8 @@ def main():
           return { href: e.href, target: e.target, rel: e.rel, text: e.innerText.trim(),
                    h: Math.round(r.height), w: Math.round(r.width) };
         }""")
-        check(btn["href"].lower() == "https://paypal.me/tekideki", "butonul de sprijin duce la PayPal.me/TekiDeki", btn["href"])
+        check(btn["href"] == "https://paypal.me/TekiDeki",
+              "butonul de sprijin duce exact la https://paypal.me/TekiDeki", btn["href"])
         check(btn["target"] == "_blank" and "noopener" in btn["rel"], "se deschide in fila noua, cu noopener", btn["rel"])
         check("\u2764" in btn["text"] and len(btn["text"].split()) >= 3,
               "butonul are inima si o propozitie, nu un singur cuvint", btn["text"])
@@ -348,6 +349,10 @@ def main():
             texte[cod] = (h1, titlu, desc)
             check(pg.evaluate("() => document.documentElement.scrollWidth - window.innerWidth") <= 1,
                   "%s: 390px fara derulare pe orizontala" % cod)
+            corp = pg.inner_text("body")
+            check("\u2014" not in corp and "&mdash;" not in corp,
+                  "%s: nici o cratima lunga in textul vizibil (regula R31)" % cod,
+                  [l for l in corp.splitlines() if "\u2014" in l][:2])
 
         check(len({v[0] for v in etichete.values()}) == 4,
               "butonul de sprijin e tradus in toate cele patru limbi", [v[0] for v in etichete.values()])
